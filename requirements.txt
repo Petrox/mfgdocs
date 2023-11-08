@@ -1,0 +1,3 @@
+flet
+graphviz
+python-dotenv
