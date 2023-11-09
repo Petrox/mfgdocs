@@ -5,10 +5,13 @@ A separate main method is run in a separate thread for every client session on t
 """
 
 import flet as ft
+
+from config import Config
 from mfgdocsapp import MFGDocsApp
 
 
 def main(page: ft.Page):
+    Config.init_config()
     app = MFGDocsApp(page)
     app.main()
 
