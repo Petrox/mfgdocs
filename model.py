@@ -6,7 +6,8 @@
 class Entity:
     """The Item represents one entity in the model"""
     pk = None
-
+    key = ''
+    keywords = ''
     def set_id(self, pk):
         self.pk = pk
 
@@ -14,35 +15,60 @@ class Entity:
         return self.pk
 
     def from_dict(self, d: dict):
-        pass
+        self.pk = d['pk']
+        self.key = d['key']
+        self.keywords = d['keywords']
 
     def to_dict(self):
-        return {'id': self.pk}
+        return {'pk': self.pk,
+                'key': self.key,
+                'keywords': self.keywords}
+
+    def extrakeys(self):
+        return None
 
 
 class Resource(Entity):
     """A simple resource entity, like a tool,a machine or a role.
     """
-    identifier = ''
-    url = ''
-    name = ''
-    description = ''
-    image = ''
+
+    def __init__(self):
+        self.url = ''
+        self.name = ''
+        self.description = ''
+        self.image = ''
+        self.color = ''
 
     def to_dict(self):
-        return {'pk': self.pk,
-                'identifier': self.identifier,
+        return super().to_dict()|{
                 'url': self.url,
                 'name': self.name,
                 'description': self.description,
-                'image': self.image}
+                'image': self.image,
+                'color': self.color}
 
     def from_dict(self, d: dict):
-        self.pk = d['pk']
-        self.identifier = d['identifier']
+        super().from_dict(d)
         self.name = d['name']
         self.description = d['description']
         self.image = d['image']
+        self.color = d['color']
+
+
+class Part(Resource):
+    """Represents a basic part in the technology.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.bom = {}
+
+    def to_dict(self):
+        return super().to_dict()|{'bom': self.bom}
+
+    def from_dict(self, d: dict):
+        super().from_dict(d)
+        self.bom = d['bom']
 
 
 class BuildStep(Entity):
@@ -50,22 +76,23 @@ class BuildStep(Entity):
 
     The process itself uses the same tools and machines during all the subprocesses.
     """
-    inputparts = {}
-    outputparts = {}
-    tools = {}
-    machines = {}
-    roles = {}
-    location = None
-    start_after = {}
-    start_after_start = {}
-    substeps = {}
-    title = ''
-    text = ''
-    prepare_hours = 0
-    cooldown_hours = 0
+
+    def __init__(self):
+        self.inputparts = {}
+        self.outputparts = {}
+        self.tools = {}
+        self.machines = {}
+        self.roles = {}
+        self.location = None
+        self.start_after = {}
+        self.start_after_start = {}
+        self.title = ''
+        self.text = ''
+        self.prepare_hours = 0
+        self.cooldown_hours = 0
 
     def from_dict(self, d: dict):
-        self.pk = d['pk']
+        super().from_dict(d)
         self.inputparts = d['inputparts']
         self.outputparts = d['outputparts']
         self.tools = d['tools']
@@ -73,6 +100,7 @@ class BuildStep(Entity):
         self.roles = d['roles']
         self.title = d['title']
         self.text = d['text']
+        self.key = d['key']
         self.location = d['location']
         self.start_after = d['start_after']
         self.start_after_start = d['start_after_start']
@@ -80,7 +108,7 @@ class BuildStep(Entity):
         self.cooldown_hours = d['cooldown_time']
 
     def to_dict(self):
-        return {'pk': self.pk,
+        return super().to_dict()|{
                 'inputparts': self.inputparts,
                 'outputparts': self.outputparts,
                 'tools': self.tools,
@@ -88,11 +116,47 @@ class BuildStep(Entity):
                 'roles': self.roles,
                 'location': self.location,
                 'text': self.text,
+                'key': self.key,
                 'title': self.title,
                 'start_after': self.start_after,
                 'start_after_start': self.start_after_start,
                 'prepare_hours': self.prepare_hours,
                 'cooldown_hours': self.cooldown_hours}
+
+    def get_relations(self, key):
+        response = {}
+        if key in self.inputparts:
+            response['inputparts'] = True
+        if key in self.outputparts:
+            response['outputparts'] = True
+        if key in self.tools:
+            response['tools'] = True
+        if key in self.machines:
+            response['machines'] = True
+        if key in self.roles:
+            response['roles'] = True
+        if key in self.start_after:
+            response['start_after'] = True
+        if key in self.start_after_start:
+            response['start_after_start'] = True
+        if key == self.location:
+            response['location'] = True
+        return response
+
+    def has_relation_to(self, key):
+        return (key in self.inputparts or
+                key in self.outputparts or
+                key in self.tools or
+                key in self.roles or
+                key in self.machines or
+                key == self.location
+                or key in self.start_after
+                or key in self.start_after_start)
+
+    def extrakeys(self):
+        if self.key is not None:
+            return {'key': self.key}
+        return None
 
     def add_inputpart(self, partkey, amount):
         if partkey in self.inputparts:
