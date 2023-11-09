@@ -32,6 +32,8 @@ class Config:
         Config.prefix_machine = os.getenv("MFGDOCS_PREFIX_MACHINE", "DS-MAC-")
         Config.prefix_tool = os.getenv("MFGDOCS_PREFIX_TOOL", "DS-TOL-")
         Config.prefix_consumable = os.getenv("MFGDOCS_PREFIX_CONSUMABLE", "DS-CON-")
+        Config.prefix_part = os.getenv("MFGDOCS_PREFIX_ROLE", "DS-ROL-")
+        Config.prefix_work = os.getenv("MFGDOCS_PREFIX_LOCATION", "DS-LOC-")
         Config.inventree_url = os.getenv("INVENTREE_URL", "")
 
 
