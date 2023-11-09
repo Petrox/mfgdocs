@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import flet as ft
 from config import Config
+from storage import Storage
 
 
 class MFGDocsApp:
@@ -17,15 +18,15 @@ class MFGDocsApp:
         self.maincontent = ft.Container()
         self.page = page
         self.page.title = 'MFGDocs'
-        self.storage = {}
+        self.storage = Storage(self)
         self.ctrl = {'progressring': ft.ProgressRing(visible=False),
                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh)}
         self.long_process_depth = 0
         page.appbar = ft.AppBar(
-            title=ft.Text('Markdown Editor', color=Config.instance_color),  # title of the AppBar, with a white color
+            title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=True,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['progressring'], self.ctrl['reload'], self.ctrl['entities']]
+            actions=[self.ctrl['progressring'], self.ctrl['reload']]
         )
         self.maincontent.content = ft.Text('maincontent')
         self.page.controls.append(self.maincontent)
@@ -35,6 +36,7 @@ class MFGDocsApp:
         del e  # unused
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
+        self.storage.load_resources()
         time.sleep(2)
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
