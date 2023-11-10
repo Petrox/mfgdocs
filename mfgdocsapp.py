@@ -18,6 +18,13 @@ class MFGDocsApp:
         self.maincontent = ft.Container()
         self.page = page
         self.page.title = 'MFGDocs'
+        self.page.theme_mode=ft.ThemeMode.DARK
+        scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
+                                                  interactive=True)
+        self.page.theme=ft.theme.Theme(color_scheme_seed='blue',
+                                       scrollbar_theme=scrollbar,
+                                       visual_density=ft.ThemeVisualDensity.COMPACT,
+                                       font_family='Roboto')
         self.storage = Storage(self)
         self.ctrl = {'progressring': ft.ProgressRing(visible=False),
                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh)}
@@ -28,8 +35,33 @@ class MFGDocsApp:
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
             actions=[self.ctrl['progressring'], self.ctrl['reload']]
         )
+        self.ctrl['step_contains'] = ft.TextField(label='Step search', width=100)
+        self.ctrl['step_search'] = ft.IconButton(ft.icons.SEARCH)
+        self.ctrl['step_dropdown'] = ft.Dropdown(width=160)
+        self.ctrl['part_contains'] = ft.TextField(label='Part search', width=100)
+        self.ctrl['part_search'] = ft.IconButton(ft.icons.SEARCH)
+        self.ctrl['part_dropdown'] = ft.Dropdown(width=160)
+        self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
+        self.ctrl['check_view_names'] = ft.Checkbox(label='View names')
+        self.ctrl['check_group_activities'] = ft.Checkbox(label='Group activities')
+        self.ctrl['check_group_locations'] = ft.Checkbox(label='Group locations')
+        self.ctrl['toolbar_checkboxes'] = ft.Row(controls=[self.ctrl['check_view_all'],
+                                                           self.ctrl['check_view_names'],
+                                                           self.ctrl['check_group_activities'],
+                                                           self.ctrl['check_group_locations']])
+        self.ctrl['toolbar'] = ft.Row(controls=[self.ctrl['step_contains'],
+                                                          self.ctrl['step_search'],
+                                                          self.ctrl['step_dropdown'],
+                                                          self.ctrl['part_contains'],
+                                                          self.ctrl['part_search'],
+                                                          self.ctrl['part_dropdown'],
+                                                          self.ctrl['toolbar_checkboxes']])
+
+        self.ctrl['log_message'] = ft.Text('')
+        self.ctrl['footer'] = ft.Row(controls=[self.ctrl['log_message']])
+
         self.maincontent.content = ft.Text('maincontent')
-        self.page.controls.append(self.maincontent)
+        self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'],self.maincontent,self.ctrl['footer']]))
         self.page.update()
 
     def click_refresh(self, e):
