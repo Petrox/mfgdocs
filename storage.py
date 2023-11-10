@@ -6,7 +6,7 @@ import os
 from cache import Cache
 from config import Config
 import json
-from model import Resource, BuildStep
+from model import Resource, BuildStep, Part
 
 
 class Storage:
@@ -30,7 +30,7 @@ class Storage:
         self.load_json(self.cache_roles, '/data/roles.json', Resource)
         self.load_json(self.cache_tools, '/data/tools.json', Resource)
         self.load_json(self.cache_actions, '/data/actions.json', Resource)
-        self.load_json(self.cache_parts, '/data/parts.json', Resource)
+        self.load_json(self.cache_parts, '/data/parts.json', Part)
         self.load_json(self.cache_locations, '/data/locations.json', Resource)
         self.load_json(self.cache_machines, '/data/machines.json', Resource)
         self.load_json(self.cache_consumables, '/data/consumables.json', Resource)

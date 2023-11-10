@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 import flet as ft
 from config import Config
+from render import Render
 from storage import Storage
 
 
@@ -15,6 +16,9 @@ class MFGDocsApp:
     page: ft.Page = None
 
     def __init__(self, page):
+        self.storage = Storage(self)
+        self.renderer = Render(self,self.storage)
+        self.long_process_depth = 0
         self.maincontent = ft.Container()
         self.page = page
         self.page.title = 'MFGDocs'
@@ -25,10 +29,8 @@ class MFGDocsApp:
                                        scrollbar_theme=scrollbar,
                                        visual_density=ft.ThemeVisualDensity.COMPACT,
                                        font_family='Roboto')
-        self.storage = Storage(self)
         self.ctrl = {'progressring': ft.ProgressRing(visible=False),
                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh)}
-        self.long_process_depth = 0
         page.appbar = ft.AppBar(
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=True,  # we center the title
@@ -69,7 +71,7 @@ class MFGDocsApp:
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
         self.storage.load_resources()
-        time.sleep(2)
+        self.renderer.render()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
 
