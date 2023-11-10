@@ -15,9 +15,9 @@ class Entity:
         return self.pk
 
     def from_dict(self, d: dict):
-        self.pk = d['pk']
-        self.key = d['key']
-        self.keywords = d['keywords']
+        self.pk = d.get('pk', '')
+        self.key = d.get('key', '')
+        self.keywords = d.get('keywords', '')
 
     def to_dict(self):
         return {'pk': self.pk,
@@ -49,10 +49,10 @@ class Resource(Entity):
 
     def from_dict(self, d: dict):
         super().from_dict(d)
-        self.name = d['name']
-        self.description = d['description']
-        self.image = d['image']
-        self.color = d['color']
+        self.name = d.get('name', '')
+        self.description = d.get('description', '')
+        self.image = d.get('image', '')
+        self.color = d.get('color', '')
 
 
 class Part(Resource):
@@ -68,7 +68,7 @@ class Part(Resource):
 
     def from_dict(self, d: dict):
         super().from_dict(d)
-        self.bom = d['bom']
+        self.bom = d.get('bom', {})
 
 
 class BuildStep(Entity):
@@ -78,6 +78,8 @@ class BuildStep(Entity):
     """
 
     def __init__(self):
+        self.acceptance = ''
+        self.actions = {}
         self.inputparts = {}
         self.outputparts = {}
         self.tools = {}
@@ -86,26 +88,23 @@ class BuildStep(Entity):
         self.location = None
         self.start_after = {}
         self.start_after_start = {}
-        self.title = ''
-        self.text = ''
         self.prepare_hours = 0
         self.cooldown_hours = 0
 
     def from_dict(self, d: dict):
         super().from_dict(d)
-        self.inputparts = d['inputparts']
-        self.outputparts = d['outputparts']
-        self.tools = d['tools']
-        self.machines = d['machines']
-        self.roles = d['roles']
-        self.title = d['title']
-        self.text = d['text']
-        self.key = d['key']
-        self.location = d['location']
-        self.start_after = d['start_after']
-        self.start_after_start = d['start_after_start']
-        self.prepare_hours = d['prepare_time']
-        self.cooldown_hours = d['cooldown_time']
+        self.inputparts = d.get('inputparts', {})
+        self.outputparts = d.get('outputparts', {})
+        self.tools = d.get('tools', {})
+        self.machines = d.get('machines', {})
+        self.roles = d.get('roles', {})
+        self.location = d.get('location', None)
+        self.actions = d.get('actions', {})
+        self.acceptance = d.get('acceptance', '')
+        self.start_after = d.get('start_after', {})
+        self.start_after_start = d.get('start_after_start', {})
+        self.prepare_hours = d.get('prepare_time', 0)
+        self.cooldown_hours = d.get('cooldown_time',0)
 
     def to_dict(self):
         return super().to_dict()|{
@@ -114,10 +113,9 @@ class BuildStep(Entity):
                 'tools': self.tools,
                 'machines': self.machines,
                 'roles': self.roles,
+                'actions': self.actions,
                 'location': self.location,
-                'text': self.text,
-                'key': self.key,
-                'title': self.title,
+                'acceptance': self.acceptance,
                 'start_after': self.start_after,
                 'start_after_start': self.start_after_start,
                 'prepare_hours': self.prepare_hours,
@@ -129,6 +127,8 @@ class BuildStep(Entity):
             response['inputparts'] = True
         if key in self.outputparts:
             response['outputparts'] = True
+        if key in self.actions:
+            response['actions'] = True
         if key in self.tools:
             response['tools'] = True
         if key in self.machines:
@@ -147,6 +147,7 @@ class BuildStep(Entity):
         return (key in self.inputparts or
                 key in self.outputparts or
                 key in self.tools or
+                key in self.actions or
                 key in self.roles or
                 key in self.machines or
                 key == self.location
@@ -187,6 +188,16 @@ class BuildStep(Entity):
     def remove_tool(self, partkey):
         if partkey in self.tools:
             del self.tools[partkey]
+
+    def add_action(self, key, amount):
+        if key in self.actions:
+            self.inputparts[key] += amount
+        else:
+            self.inputparts[key] = amount
+
+    def remove_action(self, key):
+        if key in self.actions:
+            del self.actions[key]
 
     def add_machine(self, partkey, amount):
         if partkey in self.machines:
