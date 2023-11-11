@@ -30,9 +30,7 @@ class MFGDocsApp:
                                          visual_density=ft.ThemeVisualDensity.COMPACT,
                                          font_family='Roboto')
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
-                                             filled=True)
-        self.ctrl['search'] = ft.IconButton(ft.icons.SEARCH, icon_color='black')
-        self.ctrl['dropdown'] = ft.Dropdown(width=160)
+                                             filled=True,dense=True, icon=ft.icons.SEARCH)
         self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')])
         self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')])
 
@@ -43,7 +41,7 @@ class MFGDocsApp:
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=False,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['contains'], self.ctrl['search'], self.ctrl['dropdown'], self.ctrl['progressring'],
+            actions=[self.ctrl['contains'], self.ctrl['progressring'],
                      self.ctrl['reload']]
         )
         self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
