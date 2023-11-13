@@ -35,14 +35,16 @@ class MFGDocsApp:
         self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')])
 
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
-                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh)
+                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh),
+                      'feedback': ft.IconButton(ft.icons.FEEDBACK,
+                                                on_click=lambda _: self.page.launch_url(Config.feedback_url)),
                       }
         page.appbar = ft.AppBar(
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=False,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
             actions=[self.ctrl['contains'], self.ctrl['progressring'],
-                     self.ctrl['reload']]
+                     self.ctrl['reload'], self.ctrl['feedback']]
         )
         self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
         self.ctrl['check_view_names'] = ft.Checkbox(label='View names')
@@ -87,7 +89,7 @@ class MFGDocsApp:
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
         self.storage.load_resources()
-        self.renderer.render()
+        self.renderer.render_bom_to_file()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
 
