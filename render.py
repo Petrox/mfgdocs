@@ -3,19 +3,16 @@ Handles rendering the dataset with graphviz
 
 """
 import graphviz
-
-# from mfgdocsapp import MFGDocsApp
-from graphviz import Digraph
-
 from storage import Storage
 
 
 class Render:
+    """Generates dot graph content and renders it to a file."""
     def __init__(self, mfgdocsapp: 'MFGDocsApp', storage: Storage):
         self.mfgdocsapp = mfgdocsapp
         self.storage = storage
 
-    def render(self, options=None):
+    def render_bom_to_file(self, options=None, extension='png'):
         if options is None:
             options = {}
         dg = graphviz.Digraph(encoding='utf-8', name='Manufacturing Document')
@@ -23,15 +20,15 @@ class Render:
         edges = []
         for i in self.storage.cache_parts.data.keys():
             part = self.storage.cache_parts.data[i]
-            self.render_part_compact(dg, part)
+            self.dot_render_part_compact(dg, part)
             # dg.node(i, part.name)
             for bom in part.bom:
                 edges.append([bom, i])
         for e in edges:
             dg.edge(e[0], e[1])
-        dg.render('tempfiles/dg.dot', view=True, format='png')
+        dg.render('tempfiles/dg.dot', view=True, format=extension)
 
-    def render_part_compact(self, dg, part):
+    def dot_render_part_compact(self, dg, part):
         """
 
         :type dg: Digraph
