@@ -71,13 +71,14 @@ class Part(Resource):
         self.bom = d.get('bom', {})
 
 
-class BuildStep(Entity):
+class Step(Resource):
     """Represents one build step in the manufacturing process, that results in outputs.
 
     The process itself uses the same tools and machines during all the subprocesses.
     """
 
     def __init__(self):
+        super().__init__()
         self.acceptance = ''
         self.actions = {}
         self.inputparts = {}
