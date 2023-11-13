@@ -6,7 +6,7 @@ import os
 from cache import Cache
 from config import Config
 import json
-from model import Resource, BuildStep, Part
+from model import Resource, Step, Part
 
 
 class Storage:
@@ -34,7 +34,7 @@ class Storage:
         self.load_json(self.cache_locations, '/data/locations.json', Resource)
         self.load_json(self.cache_machines, '/data/machines.json', Resource)
         self.load_json(self.cache_consumables, '/data/consumables.json', Resource)
-        self.load_json(self.cache_buildsteps, '/data/buildsteps.json', BuildStep)
+        self.load_json(self.cache_buildsteps, '/data/buildsteps.json', Step)
 
     def load_json(self, cache, filename, classname):
         f_name = Config.workdir+filename.replace('/', os.sep)
