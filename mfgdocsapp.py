@@ -7,6 +7,7 @@ from config import Config
 from frontend import Frontend
 from model import Step
 from renderdot import RenderDot
+from rendermarkdown import RenderMarkdown
 from storage import Storage
 
 
@@ -20,9 +21,12 @@ class MFGDocsApp:
         self.frontend = Frontend(self)
         self.ctrl = {}
         self.storage = Storage(self)
-        self.renderer = RenderDot(self, self.storage)
+        self.renderdot = RenderDot(self)
+        self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
-        self.maincontent = ft.Container(content=ft.Text('maincontent'))
+        self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
+        self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY,expand=True)
+        self.maincontent.content = self.ctrl['mainmarkdown']
         self.page = page
         self.page.title = 'MFGDocs'
         self.page.theme_mode = ft.ThemeMode.DARK
@@ -33,9 +37,9 @@ class MFGDocsApp:
                                          visual_density=ft.ThemeVisualDensity.COMPACT,
                                          font_family='Roboto')
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
-                                             filled=True,dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
-        self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')],visible=False)
-        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')],visible=False)
+                                             filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
+        self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')], visible=False)
+        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')], visible=False)
 
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
                       'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh),
@@ -68,16 +72,15 @@ class MFGDocsApp:
 
         self.ctrl['log_message'] = ft.Text('')
         self.ctrl['footer'] = ft.Row(controls=[self.ctrl['log_message']])
-
-        self.maincontent.expand=True
         self.layout = ft.Container()
         self.layout.content = ft.Row(
             controls=[self.ctrl['panel_editor'], self.maincontent, self.ctrl['panel_searchresults']])
         self.ctrl['layout'] = self.layout
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
+        self.load_mainmarkdown('STEP-0001')
 
-    def search(self,event):
+    def search(self, event):
         del event
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
@@ -88,15 +91,15 @@ class MFGDocsApp:
         self.ctrl['check_panel_searchresults'].value = True
         self.ctrl['check_panel_searchresults'].update()
         self.ctrl['panel_searchresults'].update()
-        results=0
-        for k,v in self.storage.cache_steps.data.items():
+        results = 0
+        for k, v in self.storage.cache_steps.data.items():
             assert isinstance(v, Step)
             if v.contains(self.ctrl['contains'].value):
-                results+=1
+                results += 1
                 self.ctrl['panel_searchresults'].controls.append(self.frontend.get_searchresultitem_step(k))
-        if results==0:
+        if results == 0:
             self.ctrl['panel_searchresults'].controls.clear()
-            self.ctrl['panel_searchresults'].controls.append(ft.Text('No search results found',color='red',
+            self.ctrl['panel_searchresults'].controls.append(ft.Text('No search results found', color='red',
                                                                      style=ft.TextThemeStyle.HEADLINE_MEDIUM))
         self.ctrl['panel_searchresults'].update()
         self.ctrl['progressring'].visible = False
@@ -112,12 +115,17 @@ class MFGDocsApp:
         self.ctrl['panel_searchresults'].visible = self.ctrl['check_panel_searchresults'].value
         self.ctrl['panel_searchresults'].update()
 
+
+    def load_mainmarkdown(self,key):
+        self.ctrl['mainmarkdown'].value=self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
+        self.ctrl['mainmarkdown'].update()
+
     def click_refresh(self, e):
         del e  # unused
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
         self.storage.load_resources()
-        self.renderer.render_bom_to_file()
+        self.renderdot.render_bom_to_file()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
 
