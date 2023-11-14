@@ -6,7 +6,7 @@ import flet as ft
 from config import Config
 from frontend import Frontend
 from model import Step
-from render import Render
+from renderdot import RenderDot
 from storage import Storage
 
 
@@ -20,7 +20,7 @@ class MFGDocsApp:
         self.frontend = Frontend(self)
         self.ctrl = {}
         self.storage = Storage(self)
-        self.renderer = Render(self, self.storage)
+        self.renderer = RenderDot(self, self.storage)
         self.long_process_depth = 0
         self.maincontent = ft.Container(content=ft.Text('maincontent'))
         self.page = page

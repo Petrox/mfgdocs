@@ -6,7 +6,7 @@ import graphviz
 from storage import Storage
 
 
-class Render:
+class RenderDot:
     """Generates dot graph content and renders it to a file."""
     def __init__(self, mfgdocsapp: 'MFGDocsApp', storage: Storage):
         self.mfgdocsapp = mfgdocsapp
