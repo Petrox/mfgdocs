@@ -3,14 +3,13 @@ Handles rendering the dataset with graphviz
 
 """
 import graphviz
-from storage import Storage
 
 
 class RenderDot:
     """Generates dot graph content and renders it to a file."""
-    def __init__(self, mfgdocsapp: 'MFGDocsApp', storage: Storage):
+    def __init__(self, mfgdocsapp: 'MFGDocsApp'):
         self.mfgdocsapp = mfgdocsapp
-        self.storage = storage
+        self.storage = mfgdocsapp.storage
 
     def render_bom_to_file(self, options=None, extension='png'):
         if options is None:
