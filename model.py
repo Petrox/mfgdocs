@@ -101,7 +101,7 @@ class Step(Resource):
         self.tools = d.get('tools', {})
         self.machines = d.get('machines', {})
         self.roles = d.get('roles', {})
-        self.roles = d.get('consumables', {})
+        self.consumables = d.get('consumables', {})
         self.location = d.get('location', None)
         self.actions = d.get('actions', {})
         self.acceptance = d.get('acceptance', '')
