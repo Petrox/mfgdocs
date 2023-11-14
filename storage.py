@@ -18,7 +18,7 @@ class Storage:
         self.cache_actions = Cache('actions')
         self.cache_roles = Cache('roles')
         self.cache_tools = Cache('tools')
-        self.cache_buildsteps = Cache('buildsteps')
+        self.cache_steps = Cache('buildsteps')
         self.cache_parts = Cache('parts')
         self.cache_locations = Cache('locations')
         self.cache_machines = Cache('machines')
@@ -34,7 +34,7 @@ class Storage:
         self.load_json(self.cache_locations, '/data/locations.json', Resource)
         self.load_json(self.cache_machines, '/data/machines.json', Resource)
         self.load_json(self.cache_consumables, '/data/consumables.json', Resource)
-        self.load_json(self.cache_buildsteps, '/data/buildsteps.json', Step)
+        self.load_json(self.cache_steps, '/data/buildsteps.json', Step)
 
     def load_json(self, cache, filename, classname):
         f_name = Config.workdir+filename.replace('/', os.sep)

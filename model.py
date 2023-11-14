@@ -8,6 +8,7 @@ class Entity:
     pk = None
     key = ''
     keywords = ''
+
     def set_id(self, pk):
         self.pk = pk
 
@@ -40,12 +41,12 @@ class Resource(Entity):
         self.color = ''
 
     def to_dict(self):
-        return super().to_dict()|{
-                'url': self.url,
-                'name': self.name,
-                'description': self.description,
-                'image': self.image,
-                'color': self.color}
+        return super().to_dict() | {
+            'url': self.url,
+            'name': self.name,
+            'description': self.description,
+            'image': self.image,
+            'color': self.color}
 
     def from_dict(self, d: dict):
         super().from_dict(d)
@@ -64,7 +65,7 @@ class Part(Resource):
         self.bom = {}
 
     def to_dict(self):
-        return super().to_dict()|{'bom': self.bom}
+        return super().to_dict() | {'bom': self.bom}
 
     def from_dict(self, d: dict):
         super().from_dict(d)
@@ -79,6 +80,7 @@ class Step(Resource):
 
     def __init__(self):
         super().__init__()
+        self.consumables = {}
         self.acceptance = ''
         self.actions = {}
         self.inputparts = {}
@@ -99,28 +101,30 @@ class Step(Resource):
         self.tools = d.get('tools', {})
         self.machines = d.get('machines', {})
         self.roles = d.get('roles', {})
+        self.roles = d.get('consumables', {})
         self.location = d.get('location', None)
         self.actions = d.get('actions', {})
         self.acceptance = d.get('acceptance', '')
         self.start_after = d.get('start_after', {})
         self.start_after_start = d.get('start_after_start', {})
         self.prepare_hours = d.get('prepare_time', 0)
-        self.cooldown_hours = d.get('cooldown_time',0)
+        self.cooldown_hours = d.get('cooldown_time', 0)
 
     def to_dict(self):
-        return super().to_dict()|{
-                'inputparts': self.inputparts,
-                'outputparts': self.outputparts,
-                'tools': self.tools,
-                'machines': self.machines,
-                'roles': self.roles,
-                'actions': self.actions,
-                'location': self.location,
-                'acceptance': self.acceptance,
-                'start_after': self.start_after,
-                'start_after_start': self.start_after_start,
-                'prepare_hours': self.prepare_hours,
-                'cooldown_hours': self.cooldown_hours}
+        return super().to_dict() | {
+            'inputparts': self.inputparts,
+            'outputparts': self.outputparts,
+            'tools': self.tools,
+            'machines': self.machines,
+            'roles': self.roles,
+            'actions': self.actions,
+            'consumables': self.consumables,
+            'location': self.location,
+            'acceptance': self.acceptance,
+            'start_after': self.start_after,
+            'start_after_start': self.start_after_start,
+            'prepare_hours': self.prepare_hours,
+            'cooldown_hours': self.cooldown_hours}
 
     def get_relations(self, key):
         response = {}
@@ -136,6 +140,8 @@ class Step(Resource):
             response['machines'] = True
         if key in self.roles:
             response['roles'] = True
+        if key in self.consumables:
+            response['consumables'] = True
         if key in self.start_after:
             response['start_after'] = True
         if key in self.start_after_start:
@@ -242,3 +248,34 @@ class Step(Resource):
 
     def set_cooldown_hours(self, cooldown_hours: float):
         self.cooldown_hours = cooldown_hours
+
+    def contains(self, containstext: str):
+        if (containstext in self.name
+                or containstext in self.description
+                or containstext in self.acceptance
+                or containstext in self.key):
+            return True
+        if containstext in self.location:
+            return True
+        if self.multi_partial_keymatch([self.inputparts, self.outputparts,
+                                        self.tools, self.actions,
+                                        self.machines, self.roles,
+                                        self.consumables], containstext):
+            return True
+
+    def partial_keymatch(self, dictionary, text) -> bool:
+        """Returns true if any key or name or description in the dictionary contains the text."""
+        for key in dictionary.keys():
+            # if text in key or text in value.name or text in value.description:
+            # TODO it would be nice to look up every relation
+            #  and check if it contains the text too, not just look for the keys
+            if text in key:
+                return True
+        return False
+
+    def multi_partial_keymatch(self, list_of_dicts: [dict], text: str) -> bool:
+        """Returns true if any dictionary in the list has a key or name matching contains the text."""
+        for value in list_of_dicts:
+            if self.partial_keymatch(value, text):
+                return True
+        return False

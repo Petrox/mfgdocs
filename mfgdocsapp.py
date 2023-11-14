@@ -4,6 +4,8 @@
 from datetime import datetime
 import flet as ft
 from config import Config
+from frontend import Frontend
+from model import Step
 from render import Render
 from storage import Storage
 
@@ -15,6 +17,7 @@ class MFGDocsApp:
     page: ft.Page = None
 
     def __init__(self, page):
+        self.frontend = Frontend(self)
         self.ctrl = {}
         self.storage = Storage(self)
         self.renderer = Render(self, self.storage)
@@ -30,9 +33,9 @@ class MFGDocsApp:
                                          visual_density=ft.ThemeVisualDensity.COMPACT,
                                          font_family='Roboto')
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
-                                             filled=True,dense=True, icon=ft.icons.SEARCH)
-        self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')])
-        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')])
+                                             filled=True,dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
+        self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')],visible=False)
+        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')],visible=False)
 
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
                       'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh),
@@ -73,6 +76,31 @@ class MFGDocsApp:
         self.ctrl['layout'] = self.layout
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
+
+    def search(self,event):
+        del event
+        self.ctrl['progressring'].visible = True
+        self.ctrl['progressring'].update()
+        self.ctrl['panel_searchresults'].visible = True
+        self.ctrl['panel_searchresults'].controls.clear()
+        self.ctrl['panel_searchresults'].controls.append(ft.Text('Search Results',
+                                                                 style=ft.TextThemeStyle.HEADLINE_MEDIUM))
+        self.ctrl['check_panel_searchresults'].value = True
+        self.ctrl['check_panel_searchresults'].update()
+        self.ctrl['panel_searchresults'].update()
+        results=0
+        for k,v in self.storage.cache_steps.data.items():
+            assert isinstance(v, Step)
+            if v.contains(self.ctrl['contains'].value):
+                results+=1
+                self.ctrl['panel_searchresults'].controls.append(self.frontend.get_searchresultitem_step(k))
+        if results==0:
+            self.ctrl['panel_searchresults'].controls.clear()
+            self.ctrl['panel_searchresults'].controls.append(ft.Text('No search results found',color='red',
+                                                                     style=ft.TextThemeStyle.HEADLINE_MEDIUM))
+        self.ctrl['panel_searchresults'].update()
+        self.ctrl['progressring'].visible = False
+        self.ctrl['progressring'].update()
 
     def click_check_panel_editor(self, event):
         del event  # unused

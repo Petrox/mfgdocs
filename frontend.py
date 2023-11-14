@@ -19,7 +19,7 @@ class Frontend:
         return c
 
     def get_searchresultitem_step(self, pk: int) -> ft.Control:
-        item: Step = self.mfgdocsapp.storage.cache_buildsteps.data[pk]
+        item: Step = self.mfgdocsapp.storage.cache_steps.data[pk]
         c = ft.Container()
         c.bgcolor = ft.colors.LIGHT_BLUE_100
         c.border = ft.RoundedRectangleBorder()
