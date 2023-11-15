@@ -21,6 +21,7 @@ class MFGDocsApp:
     def __init__(self, page):
         self.editor_dialog = None
         self.page = page
+        self.page.views[0].scroll = ft.ScrollMode.ADAPTIVE
         self.visible_step_key = None
         self.frontend = Frontend(self)
         self.ctrl = {}
@@ -28,14 +29,22 @@ class MFGDocsApp:
         self.renderdot = RenderDot(self)
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
-        self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True, extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
+        self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,
+                                                expand=False,
+                                                extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
         self.ctrl['visible_step_key'] = ft.Text('', style=ft.TextThemeStyle.HEADLINE_MEDIUM)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
 
-        self.maincontent.content = ft.Column([ft.Row([self.ctrl['visible_step_key'],
-                                                      ft.IconButton(icon=ft.icons.EDIT_NOTE,
-                                                                    on_click=self.edit_visible_step)]),
-                                              self.ctrl['mainmarkdown']])
+        self.maincontent.content = ft.Column(expand=True,
+                                             scroll=ft.ScrollMode.ALWAYS,
+                                             controls=[ft.Row(expand=False,
+                                                              controls=[
+                                                                  self.ctrl['visible_step_key'],
+                                                                  ft.ElevatedButton(icon=ft.icons.EDIT_NOTE,
+                                                                                    text='Edit step',
+                                                                                    on_click=self.edit_visible_step)]),
+                                                       self.ctrl['mainmarkdown']
+                                                       ])
         self.page.title = 'MFGDocs'
         self.page.theme_mode = ft.ThemeMode.DARK
         scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
@@ -149,8 +158,8 @@ class MFGDocsApp:
 
     def edit_visible_step(self, e):
         del e
-        self.editor_dialog=StepEditorDialog(self, self.storage.cache_steps.data[self.visible_step_key])
-        #self.page.dialog = ft.AlertDialog(modal=True, title=ft.Text("Step editor"),
+        self.editor_dialog = StepEditorDialog(self, self.storage.cache_steps.data[self.visible_step_key])
+        # self.page.dialog = ft.AlertDialog(modal=True, title=ft.Text("Step editor"),
         #                                  content=ft.Column(controls=[ft.Text('editor')]),
         #                                  actions=[ft.TextButton('Cancel'), ft.TextButton('Save')])
         self.page.dialog = self.editor_dialog.dialog
