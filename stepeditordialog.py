@@ -2,8 +2,12 @@
 
 Use the dialog property to access the dialog control.
 """
+import copy
+
 import flet as ft
 from model import Step
+from ingredidentlisteditor import IngredientListEditor
+
 
 
 class StepEditorDialog:
@@ -15,7 +19,7 @@ class StepEditorDialog:
     def __init__(self, mfgdocsapp: 'MFGDocsApp', step: Step):
         self.mfgdocsapp = mfgdocsapp
         self.step = step
-        self.original_step = step.to_dict()
+        self.original_step = copy.deepcopy(step.to_dict())
         self.dialog = ft.AlertDialog(modal=False)
         self.dialog.title = ft.Text(f'Step Editor {self.step.key}')
         self.dialog.content = self.get_content()
@@ -50,6 +54,7 @@ class StepEditorDialog:
                                                                value=self.step.cooldown_hours,
                                                                on_change=lambda e: setattr(self.step, 'cooldown_hours',
                                                                                            e.control.value)),
+                                                  IngredientListEditor('Input parts',self.step.inputparts)
                                                   # ft.TextField(label='Location', value=self.step.location,
                                                   # on_change=self.change_location),
                                                   # ft.TextField(label='Start after', value=self.step.start_after,
@@ -77,21 +82,26 @@ class StepEditorDialog:
         del e
         self.dialog.open = False
         self.step.from_dict(self.original_step)
-        if self.mfgdocsapp.ctrl['panel_searchresults_container'].visible:
-            self.mfgdocsapp.search(None)
+        self.parent_search_update()
+        self.parent_markdown_update()
         self.mfgdocsapp.page.update()
 
     def dialog_save(self, e):
         del e
         self.dialog.open = False
+        self.parent_search_update()
+        self.parent_markdown_update()
+        self.mfgdocsapp.page.update()
+
+    def parent_markdown_update(self):
+        self.mfgdocsapp.load_mainmarkdown(self.step.key)
+
+    def parent_search_update(self):
         if self.mfgdocsapp.ctrl['panel_searchresults_container'].visible:
             self.mfgdocsapp.search(None)
-        self.mfgdocsapp.load_mainmarkdown(self.step.key)
-        self.mfgdocsapp.page.update()
 
     def dialog_preview(self, e):
         del e
-        if self.mfgdocsapp.ctrl['panel_searchresults_container'].visible:
-            self.mfgdocsapp.search(None)
-        self.mfgdocsapp.load_mainmarkdown(self.step.key)
+        self.parent_search_update()
+        self.parent_markdown_update()
         self.mfgdocsapp.page.update()
