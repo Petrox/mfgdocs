@@ -89,6 +89,7 @@ class Step(Resource):
         self.machines = {}
         self.roles = {}
         self.location = None
+        self.final = False
         self.start_after = {}
         self.start_after_start = {}
         self.prepare_hours = 0
@@ -98,6 +99,7 @@ class Step(Resource):
         super().from_dict(d)
         self.inputparts = d.get('inputparts', {})
         self.outputparts = d.get('outputparts', {})
+        self.final = d.get('final', False)
         self.tools = d.get('tools', {})
         self.machines = d.get('machines', {})
         self.roles = d.get('roles', {})
@@ -116,6 +118,7 @@ class Step(Resource):
             'outputparts': self.outputparts,
             'tools': self.tools,
             'machines': self.machines,
+            'final': self.final,
             'roles': self.roles,
             'actions': self.actions,
             'consumables': self.consumables,
