@@ -24,8 +24,8 @@ class MFGDocsApp:
         self.renderdot = RenderDot(self)
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
-        self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
-        self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY,expand=True)
+        self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True, extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
+        self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
         self.maincontent.content = self.ctrl['mainmarkdown']
         self.page = page
         self.page.title = 'MFGDocs'
@@ -39,7 +39,16 @@ class MFGDocsApp:
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
                                              filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
         self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')], visible=False)
-        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')], visible=False)
+        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')])
+        self.ctrl['panel_searchresults_container'] = ft.Container(
+            self.ctrl['panel_searchresults'],
+            expand=True,
+            margin=10,
+            padding=10,
+            bgcolor=ft.colors.BLUE_GREY_800,
+            border_radius=10,
+            visible=False,
+            alignment=ft.alignment.top_center)
 
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
                       'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh),
@@ -74,29 +83,43 @@ class MFGDocsApp:
         self.ctrl['footer'] = ft.Row(controls=[self.ctrl['log_message']])
         self.layout = ft.Container()
         self.layout.content = ft.Row(
-            controls=[self.ctrl['panel_editor'], self.maincontent, self.ctrl['panel_searchresults']])
+            controls=[self.ctrl['panel_editor'], self.maincontent, self.ctrl['panel_searchresults_container']],
+            vertical_alignment=ft.CrossAxisAlignment.START)
         self.ctrl['layout'] = self.layout
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
         self.load_mainmarkdown('STEP-0001')
 
+    def show_searchresults(self):
+        self.ctrl['check_panel_searchresults'].value = True
+        self.ctrl['check_panel_searchresults'].update()
+        self.ctrl['panel_searchresults_container'].visible = True
+        self.ctrl['panel_searchresults_container'].update()
+
+    def hide_searchresults(self,e):
+        del e
+        self.ctrl['check_panel_searchresults'].value = False
+        self.ctrl['check_panel_searchresults'].update()
+        self.ctrl['panel_searchresults_container'].visible = False
+        self.ctrl['panel_searchresults_container'].update()
+
     def search(self, event):
         del event
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
-        self.ctrl['panel_searchresults'].visible = True
         self.ctrl['panel_searchresults'].controls.clear()
-        self.ctrl['panel_searchresults'].controls.append(ft.Text('Search Results',
-                                                                 style=ft.TextThemeStyle.HEADLINE_MEDIUM))
-        self.ctrl['check_panel_searchresults'].value = True
-        self.ctrl['check_panel_searchresults'].update()
-        self.ctrl['panel_searchresults'].update()
+        self.ctrl['panel_searchresults'].controls.append(
+            ft.Row(controls=[ft.Text('Search Results',style=ft.TextThemeStyle.HEADLINE_MEDIUM),
+                   ft.Container(expand=True),ft.IconButton(ft.icons.CLOSE, on_click=self.hide_searchresults)]))
+        self.show_searchresults()
         results = 0
         for k, v in self.storage.cache_steps.data.items():
             assert isinstance(v, Step)
             if v.contains(self.ctrl['contains'].value):
                 results += 1
-                self.ctrl['panel_searchresults'].controls.append(self.frontend.get_searchresultitem_step(k))
+                button = self.frontend.get_searchresultitem_step(k)
+                button.on_click = lambda e, key=k: self.load_mainmarkdown(key)
+                self.ctrl['panel_searchresults'].controls.append(button)
         if results == 0:
             self.ctrl['panel_searchresults'].controls.clear()
             self.ctrl['panel_searchresults'].controls.append(ft.Text('No search results found', color='red',
@@ -112,12 +135,11 @@ class MFGDocsApp:
 
     def click_check_panel_searchresults(self, event):
         del event  # unused
-        self.ctrl['panel_searchresults'].visible = self.ctrl['check_panel_searchresults'].value
-        self.ctrl['panel_searchresults'].update()
+        self.ctrl['panel_searchresults_container'].visible = self.ctrl['check_panel_searchresults'].value
+        self.ctrl['panel_searchresults_container'].update()
 
-
-    def load_mainmarkdown(self,key):
-        self.ctrl['mainmarkdown'].value=self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
+    def load_mainmarkdown(self, key):
+        self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
         self.ctrl['mainmarkdown'].update()
 
     def click_refresh(self, e):

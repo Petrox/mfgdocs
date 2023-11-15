@@ -21,7 +21,8 @@ class Frontend:
     def get_searchresultitem_step(self, pk: int) -> ft.Control:
         item: Step = self.mfgdocsapp.storage.cache_steps.data[pk]
         c = ft.Container()
-        c.bgcolor = ft.colors.LIGHT_BLUE_100
+        c.key=item.key
+        c.bgcolor = ft.colors.LIGHT_BLUE_400
         c.border = ft.RoundedRectangleBorder()
         c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.BUILD),
                                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
