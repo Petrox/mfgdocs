@@ -39,6 +39,7 @@ class RenderMarkdown:
         self.list_amounts_pre(step.actions, s.cache_actions.data, separator='  ', unit='h')} | {
         self.list_amounts_pre(step.consumables, s.cache_consumables.data, separator='  ')} |
 
+{'## Description' if len(step.description.strip()) > 0 else ''}
 {step.description}
 
 {'## Acceptance criteria' if len(step.acceptance.strip()) > 0 else ''}
