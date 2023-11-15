@@ -8,6 +8,7 @@ from frontend import Frontend
 from model import Step
 from renderdot import RenderDot
 from rendermarkdown import RenderMarkdown
+from stepeditordialog import StepEditorDialog
 from storage import Storage
 
 
@@ -18,6 +19,9 @@ class MFGDocsApp:
     page: ft.Page = None
 
     def __init__(self, page):
+        self.editor_dialog = None
+        self.page = page
+        self.visible_step_key = None
         self.frontend = Frontend(self)
         self.ctrl = {}
         self.storage = Storage(self)
@@ -25,9 +29,13 @@ class MFGDocsApp:
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
         self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True, extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
+        self.ctrl['visible_step_key'] = ft.Text('', style=ft.TextThemeStyle.HEADLINE_MEDIUM)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
-        self.maincontent.content = self.ctrl['mainmarkdown']
-        self.page = page
+
+        self.maincontent.content = ft.Column([ft.Row([self.ctrl['visible_step_key'],
+                                                      ft.IconButton(icon=ft.icons.EDIT_NOTE,
+                                                                    on_click=self.edit_visible_step)]),
+                                              self.ctrl['mainmarkdown']])
         self.page.title = 'MFGDocs'
         self.page.theme_mode = ft.ThemeMode.DARK
         scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
@@ -96,7 +104,7 @@ class MFGDocsApp:
         self.ctrl['panel_searchresults_container'].visible = True
         self.ctrl['panel_searchresults_container'].update()
 
-    def hide_searchresults(self,e):
+    def hide_searchresults(self, e):
         del e
         self.ctrl['check_panel_searchresults'].value = False
         self.ctrl['check_panel_searchresults'].update()
@@ -109,8 +117,9 @@ class MFGDocsApp:
         self.ctrl['progressring'].update()
         self.ctrl['panel_searchresults'].controls.clear()
         self.ctrl['panel_searchresults'].controls.append(
-            ft.Row(controls=[ft.Text('Search Results',style=ft.TextThemeStyle.HEADLINE_MEDIUM),
-                   ft.Container(expand=True),ft.IconButton(ft.icons.CLOSE, on_click=self.hide_searchresults)]))
+            ft.Row(controls=[ft.Text('Search Results', style=ft.TextThemeStyle.HEADLINE_MEDIUM),
+                             ft.Container(expand=True),
+                             ft.IconButton(ft.icons.CLOSE, on_click=self.hide_searchresults)]))
         self.show_searchresults()
         results = 0
         for k, v in self.storage.cache_steps.data.items():
@@ -138,7 +147,21 @@ class MFGDocsApp:
         self.ctrl['panel_searchresults_container'].visible = self.ctrl['check_panel_searchresults'].value
         self.ctrl['panel_searchresults_container'].update()
 
+    def edit_visible_step(self, e):
+        del e
+        self.editor_dialog=StepEditorDialog(self, self.storage.cache_steps.data[self.visible_step_key])
+        #self.page.dialog = ft.AlertDialog(modal=True, title=ft.Text("Step editor"),
+        #                                  content=ft.Column(controls=[ft.Text('editor')]),
+        #                                  actions=[ft.TextButton('Cancel'), ft.TextButton('Save')])
+        self.page.dialog = self.editor_dialog.dialog
+        self.page.dialog.visible = True
+        self.page.dialog.open = True
+        self.page.update()
+
     def load_mainmarkdown(self, key):
+        self.visible_step_key = key
+        self.ctrl['visible_step_key'].value = key
+        self.ctrl['visible_step_key'].update()
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
         self.ctrl['mainmarkdown'].update()
 
