@@ -46,11 +46,13 @@ class IngredientListEditor(ft.UserControl):
             item_ctrl = ft.Row(data={'key': k, 'value': v},
                                controls=[ft.TextField(label='Amount',
                                                       value=v,
+                                                      dense=True,
+                                                      text_align=ft.TextAlign.RIGHT,
                                                       icon=ft.icons.SHOPPING_CART,
                                                       data={'key': k, 'value': v},
                                                       on_change=self.set_amount),
                                          ft.Text(' x ', style=ft.TextThemeStyle.LABEL_SMALL),
-                                         ft.Text(k, style=ft.TextThemeStyle.LABEL_LARGE),
+                                         ft.Text(k, style=ft.TextThemeStyle.LABEL_LARGE,selectable=True),
                                          ft.IconButton(icon=ft.icons.DELETE, data={'key': k, 'value': v},
                                                        on_click=self.click_remove)])
             self.controls.append(item_ctrl)
