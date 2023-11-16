@@ -9,6 +9,7 @@ from model import Step
 from renderdot import RenderDot
 from rendermarkdown import RenderMarkdown
 from stepeditordialog import StepEditorDialog
+from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
@@ -32,17 +33,29 @@ class MFGDocsApp:
         self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,
                                                 expand=False,
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
-        self.ctrl['visible_step_key'] = ft.Text('', style=ft.TextThemeStyle.HEADLINE_MEDIUM)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
 
+        stepeditorbuttons = ft.Row(expand=False, wrap=True, controls=[
+            ft.ElevatedButton(icon=ft.icons.EDIT, col=1, text='Edit Step', on_click=self.edit_visible_step),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Input parts',
+                              on_click=self.edit_visible_step_inputparts),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Output parts',
+                              on_click=self.edit_visible_step_outputparts),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Roles', on_click=self.edit_visible_step_roles),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Actions',
+                              on_click=self.edit_visible_step_actions),
+            ft.ElevatedButton(icon=ft.icons.EDIT_NOTE, col=1, text='Machines',
+                              on_click=self.edit_visible_step_machines),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Tools', on_click=self.edit_visible_step_tools),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Consumables',
+                              on_click=self.edit_visible_step_consumables),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='After Dependencies',
+                              on_click=self.edit_visible_step_start_after),
+            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Parallel Dependencies',
+                              on_click=self.edit_visible_step_start_after_start), ])
         self.maincontent.content = ft.Column(expand=True,
                                              scroll=ft.ScrollMode.ALWAYS,
-                                             controls=[ft.Row(expand=False,
-                                                              controls=[
-                                                                  self.ctrl['visible_step_key'],
-                                                                  ft.ElevatedButton(icon=ft.icons.EDIT_NOTE,
-                                                                                    text='Edit step',
-                                                                                    on_click=self.edit_visible_step)]),
+                                             controls=[stepeditorbuttons,
                                                        self.ctrl['mainmarkdown']
                                                        ])
         self.page.title = 'MFGDocs'
@@ -159,9 +172,63 @@ class MFGDocsApp:
     def edit_visible_step(self, e):
         del e
         self.editor_dialog = StepEditorDialog(self, self.storage.cache_steps.data[self.visible_step_key])
-        # self.page.dialog = ft.AlertDialog(modal=True, title=ft.Text("Step editor"),
-        #                                  content=ft.Column(controls=[ft.Text('editor')]),
-        #                                  actions=[ft.TextButton('Cancel'), ft.TextButton('Save')])
+        self.page.dialog = self.editor_dialog.dialog
+        self.page.dialog.visible = True
+        self.page.dialog.open = True
+        self.page.update()
+
+    def edit_visible_step_inputparts(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.inputparts, 'inputparts', f'Input parts for {step.key}')
+        self.edit_popup_editordialog(dlg)
+    def edit_visible_step_outputparts(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.outputparts, 'outputparts', f'Output parts for {step.key}')
+        self.edit_popup_editordialog(dlg)
+    def edit_visible_step_roles(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.roles, 'roles', f'Roles for {step.key}')
+        self.edit_popup_editordialog(dlg)
+    def edit_visible_step_tools(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.tools, 'tools', f'Tools used for {step.key}')
+        self.edit_popup_editordialog(dlg)
+
+    def edit_visible_step_machines(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.machines, 'machines', f'Machines used for {step.key}')
+        self.edit_popup_editordialog(dlg)
+
+    def edit_visible_step_consumables(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.consumables, 'consumables', f'Consumables used in {step.key}')
+        self.edit_popup_editordialog(dlg)
+
+    def edit_visible_step_actions(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.actions, 'actions', f'Actions used for {step.key}')
+        self.edit_popup_editordialog(dlg)
+    def edit_visible_step_start_after(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.start_after, 'start_after',
+                                     f'{step.key} dependencies start_after')
+        self.edit_popup_editordialog(dlg)
+    def edit_visible_step_start_after_start(self, e):
+        del e
+        step = self.storage.cache_steps.data[self.visible_step_key]
+        dlg = StepResourceListEditor(self, step, step.start_after_start, 'start_after_start',
+                                     f'Parallel dependencies for {step.key} start_after_start')
+        self.edit_popup_editordialog(dlg)
+    def edit_popup_editordialog(self, editor_dialog):
+        self.editor_dialog = editor_dialog
         self.page.dialog = self.editor_dialog.dialog
         self.page.dialog.visible = True
         self.page.dialog.open = True
@@ -169,8 +236,6 @@ class MFGDocsApp:
 
     def load_mainmarkdown(self, key):
         self.visible_step_key = key
-        self.ctrl['visible_step_key'].value = key
-        self.ctrl['visible_step_key'].update()
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
         self.ctrl['mainmarkdown'].update()
 
