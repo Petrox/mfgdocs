@@ -6,8 +6,6 @@ import copy
 
 import flet as ft
 from model import Step
-from ingredidentlisteditor import IngredientListEditor
-
 
 
 class StepEditorDialog:
@@ -38,6 +36,13 @@ class StepEditorDialog:
                                                   ft.TextField(label='Name', dense=True, value=self.step.name,
                                                                on_change=lambda e: setattr(self.step, 'name',
                                                                                            e.control.value)),
+                                                  ft.Dropdown(label='Location', dense=True,  # value=self.step.location,
+                                                              options=list(
+                                                                  map(lambda x: ft.dropdown.Option(x.key, x.name),
+                                                            self.mfgdocsapp.storage.cache_locations.data.values())),
+                                                              on_change=lambda e: setattr(self.step, 'location',
+                                                                                          e.control.value)
+                                                              ),
                                                   ft.TextField(label='Description', dense=True, multiline=True,
                                                                min_lines=2, max_lines=20, value=self.step.description,
                                                                on_change=lambda e: setattr(self.step, 'description',
@@ -46,15 +51,19 @@ class StepEditorDialog:
                                                                min_lines=1, max_lines=6, value=self.step.acceptance,
                                                                on_change=lambda e: setattr(self.step, 'acceptance',
                                                                                            e.control.value)),
-                                                  ft.TextField(label='Prepare hours', dense=True,
-                                                               value=self.step.prepare_hours,
-                                                               on_change=lambda e: setattr(self.step, 'prepare_hours',
-                                                                                           e.control.value)),
-                                                  ft.TextField(label='Cooldown hours', dense=True,
-                                                               value=self.step.cooldown_hours,
-                                                               on_change=lambda e: setattr(self.step, 'cooldown_hours',
-                                                                                           e.control.value)),
-                                                  IngredientListEditor('Input parts',self.step.inputparts)
+                                                  ft.Row([ft.TextField(label='Prepare hours', dense=True, width=200,
+                                                                       value=self.step.prepare_hours,
+                                                                       text_align=ft.TextAlign.RIGHT,
+                                                                       on_change=lambda e: setattr(self.step,
+                                                                                                   'prepare_hours',
+                                                                                                   e.control.value)),
+                                                          ft.TextField(label='Cooldown hours', dense=True,
+                                                                       value=self.step.cooldown_hours, width=200,
+                                                                       text_align=ft.TextAlign.RIGHT,
+                                                                       on_change=lambda e: setattr(self.step,
+                                                                                                   'cooldown_hours',
+                                                                                                   e.control.value)),
+                                                          ]),
                                                   # ft.TextField(label='Location', value=self.step.location,
                                                   # on_change=self.change_location),
                                                   # ft.TextField(label='Start after', value=self.step.start_after,
