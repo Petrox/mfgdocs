@@ -26,6 +26,8 @@ class Entity:
                 'keywords': self.keywords}
 
     def extrakeys(self):
+        if self.key is not None:
+            return {'key': self.key}
         return None
 
 
@@ -71,6 +73,30 @@ class Part(Resource):
         super().from_dict(d)
         self.bom = d.get('bom', {})
 
+
+class Action(Resource):
+    """Represents a basic action in the technology.
+    """
+
+class Location(Resource):
+    """Represents a location.
+    """
+
+class Machine(Resource):
+    """Represents a machine used in manufacturing.
+    """
+
+class Consumable(Resource):
+    """Represents consumables (mostly untracked amounts).
+    """
+
+class Role(Resource):
+    """Represents a role, job position or qualification, not specific employee.
+    """
+
+class Tool(Resource):
+    """Represents a tool necessary for manufacturing. Includes custom tools and generic tools.
+    """
 
 class Step(Resource):
     """Represents one build step in the manufacturing process, that results in outputs.
@@ -163,11 +189,6 @@ class Step(Resource):
                 key == self.location
                 or key in self.start_after
                 or key in self.start_after_start)
-
-    def extrakeys(self):
-        if self.key is not None:
-            return {'key': self.key}
-        return None
 
     def add_inputpart(self, partkey, amount):
         if partkey in self.inputparts:
