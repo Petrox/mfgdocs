@@ -18,7 +18,7 @@ class Storage:
         self.cache_actions = Cache('actions')
         self.cache_roles = Cache('roles')
         self.cache_tools = Cache('tools')
-        self.cache_steps = Cache('buildsteps')
+        self.cache_steps = Cache('steps')
         self.cache_parts = Cache('parts')
         self.cache_locations = Cache('locations')
         self.cache_machines = Cache('machines')
