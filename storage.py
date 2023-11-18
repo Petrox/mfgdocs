@@ -6,7 +6,7 @@ import os
 from cache import Cache
 from config import Config
 import json
-from model import Step, Part, Role, Tool, Action, Location, Machine, Consumable
+from model import Step, Part, Role, Tool, Action, Location, Machine, Consumable, Company
 
 
 class Storage:
@@ -21,6 +21,7 @@ class Storage:
         self.cache_steps = Cache('steps')
         self.cache_parts = Cache('parts')
         self.cache_locations = Cache('locations')
+        self.cache_companies = Cache('companies')
         self.cache_machines = Cache('machines')
         self.cache_consumables = Cache('consumables')
         self.mfgdocsapp = mfgdocsapp
@@ -35,6 +36,7 @@ class Storage:
             'tools': self.cache_tools,
             'steps': self.cache_steps,
             'parts': self.cache_parts,
+            'companies': self.cache_companies,
             'locations': self.cache_locations,
             'machines': self.cache_machines,
             'consumables': self.cache_consumables,
@@ -54,11 +56,11 @@ class Storage:
         self.load_json(self.cache_locations, '/data/locations.json', Location)
         self.load_json(self.cache_machines, '/data/machines.json', Machine)
         self.load_json(self.cache_consumables, '/data/consumables.json', Consumable)
+        self.load_json(self.cache_companies, '/data/companies.json', Company)
         self.load_json(self.cache_steps, '/data/steps.json', Step)
 
-
     def load_json(self, cache, filename, classname):
-        f_name = Config.workdir+filename.replace('/', os.sep)
+        f_name = Config.workdir + filename.replace('/', os.sep)
         try:
             with open(f_name, mode='rt', encoding='utf-8') as json_file:
                 json_data = json.load(json_file)

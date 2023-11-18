@@ -28,8 +28,7 @@ class RenderMarkdown:
         s = self.mfgdocsapp.storage
         md = f'''
 # {step.key} {step.name}
- - At: {self.lookup_single_item(step.location, s.cache_locations.data)}
-
+ - Responsible: {self.lookup_single_item(step.company, s.cache_companies.data)} at location {self.lookup_single_item(step.location, s.cache_locations.data)}
 | Input | Output | Roles | Actions | Machines | Tools | Consumables |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | {self.list_amounts_pre(step.inputparts, s.cache_parts.data, separator='  ')} | {

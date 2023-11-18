@@ -78,25 +78,36 @@ class Action(Resource):
     """Represents a basic action in the technology.
     """
 
+
 class Location(Resource):
     """Represents a location.
     """
+
 
 class Machine(Resource):
     """Represents a machine used in manufacturing.
     """
 
+
 class Consumable(Resource):
     """Represents consumables (mostly untracked amounts).
     """
+
 
 class Role(Resource):
     """Represents a role, job position or qualification, not specific employee.
     """
 
+
 class Tool(Resource):
     """Represents a tool necessary for manufacturing. Includes custom tools and generic tools.
     """
+
+
+class Company(Resource):
+    """Represents a company who is responsible for the step.
+    """
+
 
 class Step(Resource):
     """Represents one build step in the manufacturing process, that results in outputs.
@@ -115,6 +126,7 @@ class Step(Resource):
         self.machines = {}
         self.roles = {}
         self.location = None
+        self.company = None
         self.final = False
         self.start_after = {}
         self.start_after_start = {}
@@ -131,6 +143,7 @@ class Step(Resource):
         self.roles = d.get('roles', {})
         self.consumables = d.get('consumables', {})
         self.location = d.get('location', None)
+        self.company = d.get('company', None)
         self.actions = d.get('actions', {})
         self.acceptance = d.get('acceptance', '')
         self.start_after = d.get('start_after', {})
@@ -149,6 +162,7 @@ class Step(Resource):
             'actions': self.actions,
             'consumables': self.consumables,
             'location': self.location,
+            'company': self.company,
             'acceptance': self.acceptance,
             'start_after': self.start_after,
             'start_after_start': self.start_after_start,
@@ -177,6 +191,8 @@ class Step(Resource):
             response['start_after_start'] = True
         if key == self.location:
             response['location'] = True
+        if key == self.company:
+            response['company'] = True
         return response
 
     def has_relation_to(self, key):
@@ -186,9 +202,10 @@ class Step(Resource):
                 key in self.actions or
                 key in self.roles or
                 key in self.machines or
-                key == self.location
-                or key in self.start_after
-                or key in self.start_after_start)
+                key == self.location or
+                key == self.company or
+                key in self.start_after or
+                key in self.start_after_start)
 
     def add_inputpart(self, partkey, amount):
         if partkey in self.inputparts:
@@ -266,6 +283,9 @@ class Step(Resource):
 
     def set_location(self, locationkey):
         self.location = locationkey
+
+    def set_company(self, companykey):
+        self.company = companykey
 
     def set_prepare_hours(self, prepare_hours: float):
         self.prepare_hours = prepare_hours
