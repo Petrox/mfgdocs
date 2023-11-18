@@ -43,15 +43,14 @@ class Cache:
         return self.data[pk]
 
     def get_by_unique_key(self, key, value):
-        print(f'cache: {self.name} get_by_unique_key({key}, {value})')
         if key not in self.index:
             return None
         if value not in self.index[key]:
             return None
-        keylist = self.index[key][value]
-        if len(keylist) != 1:
+        key_list = self.index[key][value]
+        if len(key_list) != 1:
             return None
-        return self.data[keylist[0]]
+        return self.data[key_list[0]]
 
     def list_by_key(self, key, value):
         if key not in self.index:
