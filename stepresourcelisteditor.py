@@ -37,7 +37,10 @@ class StepResourceListEditor():
         return ft.Container(expand=True,
                             content=ft.Column(expand=True, scroll=ft.ScrollMode.ALWAYS, width=800,
                                               controls=[
-                                                  IngredientListEditor('',self.itemlist)
+                                                  IngredientListEditor('',
+                                                                       self.itemlist,
+                                                                       resource_type=self.resource_type,
+                                                                       storage=self.mfgdocsapp.storage),
                                                   # ft.TextField(label='Location', value=self.step.location,
                                                   # on_change=self.change_location),
                                                   # ft.TextField(label='Start after', value=self.step.start_after,
