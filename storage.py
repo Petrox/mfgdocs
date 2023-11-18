@@ -6,7 +6,7 @@ import os
 from cache import Cache
 from config import Config
 import json
-from model import Resource, Step, Part
+from model import Step, Part, Role, Tool, Action, Location, Machine, Consumable
 
 
 class Storage:
@@ -26,14 +26,34 @@ class Storage:
         self.mfgdocsapp = mfgdocsapp
         self.load_resources()
 
+    def get_resource_by_type_and_key(self, res_type: str, key: str):
+        print(f'storage.get_resource_by_type_and_key({res_type}, {key})')
+
+        cache_map = {
+            'actions': self.cache_actions,
+            'roles': self.cache_roles,
+            'tools': self.cache_tools,
+            'steps': self.cache_steps,
+            'parts': self.cache_parts,
+            'locations': self.cache_locations,
+            'machines': self.cache_machines,
+            'consumables': self.cache_consumables,
+        }
+
+        if res_type in cache_map:
+            return cache_map[res_type].get_by_unique_key('key', key)
+
+        print(f'storage.get_resource_by_type_and_key({res_type}, {key}) unknown type {res_type}')
+        return None
+
     def load_resources(self):
-        self.load_json(self.cache_roles, '/data/roles.json', Resource)
-        self.load_json(self.cache_tools, '/data/tools.json', Resource)
-        self.load_json(self.cache_actions, '/data/actions.json', Resource)
+        self.load_json(self.cache_roles, '/data/roles.json', Role)
+        self.load_json(self.cache_tools, '/data/tools.json', Tool)
+        self.load_json(self.cache_actions, '/data/actions.json', Action)
         self.load_json(self.cache_parts, '/data/parts.json', Part)
-        self.load_json(self.cache_locations, '/data/locations.json', Resource)
-        self.load_json(self.cache_machines, '/data/machines.json', Resource)
-        self.load_json(self.cache_consumables, '/data/consumables.json', Resource)
+        self.load_json(self.cache_locations, '/data/locations.json', Location)
+        self.load_json(self.cache_machines, '/data/machines.json', Machine)
+        self.load_json(self.cache_consumables, '/data/consumables.json', Consumable)
         self.load_json(self.cache_steps, '/data/steps.json', Step)
 
 
@@ -45,6 +65,7 @@ class Storage:
                 for key in json_data.keys():
                     item = classname()
                     item.from_dict(json_data[key])
-                    cache.add(key, item, item.extrakeys())
+                    extrakeys = item.extrakeys()
+                    cache.add(key, item, extrakeys)
         except OSError as e:
             self.mfgdocsapp.log(f'storage.load_json error: {e}')
