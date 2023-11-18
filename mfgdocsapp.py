@@ -14,7 +14,6 @@ from storage import Storage
 
 
 # TODO add "new item" to the editor dialogs
-# TODO add "by company" like locations
 # TODO add embedded editor features into markdown
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -58,7 +57,8 @@ class MFGDocsApp:
         self.long_process_depth = 0
         self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,
                                                 expand=False,
-                                                extension_set=ft.MarkdownExtensionSet.GITHUB_WEB)
+                                                extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
+                                                on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
 
         stepeditorbuttons = ft.Row(expand=False, wrap=True, controls=[
@@ -145,6 +145,10 @@ class MFGDocsApp:
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
         self.load_mainmarkdown('STEP-0001')
+
+    def markdown_link_tap(self, event):
+        print(f'Link tapped: {event.data}')
+        self.page.launch_url(event.data)
 
     def show_searchresults(self):
         self.ctrl['check_panel_searchresults'].value = True
@@ -271,7 +275,8 @@ class MFGDocsApp:
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
         self.storage.load_resources()
-        self.renderdot.render_bom_to_file()
+        self.load_mainmarkdown(self.visible_step_key)
+        #self.renderdot.render_bom_to_file()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
 
