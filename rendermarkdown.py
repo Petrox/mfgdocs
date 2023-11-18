@@ -64,13 +64,13 @@ class RenderMarkdown:
         return separator.join(list(map(lambda key: f"{key} {data[key].name if key in data else 'MISSING'}",
                                        items.keys())))
 
-    def list_amounts(self, items: dict, data: dict, separator=', ', unit='') -> str:
+    def list_amounts(self, items: dict, data: dict, separator=', ', unit='', multiplicator=' :heavy_multiplication_x: ', missing_marker=':triangular_flag_on_post: MISSING') -> str:
         return separator.join(list(map(
-            lambda key: f"{key} {data[key].name + ' x ' + str(items[key]) + ' ' + unit if key in data else 'MISSING'}",
+            lambda key: f"{key} {data[key].name + multiplicator + str(items[key]) + ' ' + unit if key in data else missing_marker}",
             items.keys())))
 
-    def list_amounts_pre(self, items: dict, data: dict, separator=', ', unit='') -> str:
-        unit_with_space = (unit + ' x ' if unit != '' else 'x ')
+    def list_amounts_pre(self, items: dict, data: dict, separator=', ', unit='', multiplicator=':heavy_multiplication_x:', missing_marker=':triangular_flag_on_post: MISSING ') -> str:
+        unit_with_space = (unit + ' '+multiplicator+' ' if unit != '' else multiplicator+' ')
         return separator.join(list(map(
             lambda key: f"{str(items[key]) + ' ' + unit_with_space + key + ' ' + data[key].name}" if key in data
-            else 'MISSING: ' + str(items[key]) + ' x ' + key, items.keys())))
+            else missing_marker + str(items[key]) + ' '+multiplicator+' ' + key, items.keys())))
