@@ -13,6 +13,33 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
+# TODO fix location picker
+# TODO add "new item" to the editor dialogs
+# TODO add "by contractor" like locations
+# TODO add embedded editor features into markdown
+# TODO upload, manage, delete images
+# TODO upload manage delete other files (?)
+# TODO import from inventree
+# TODO import images from inventree
+# TODO check for minimal amounts (one input part at least, one role, one output part, etc)
+# TODO check keyword: "requires" "suggests"  and "provides"
+# TODO STEP to follow when acceptance test fails
+# TODO Support decision points (Yes-No or multiple outcome) in the process and tag the output accordingly
+# TODO display all uplink steps and parts
+# TODO display all downwind steps and parts
+# TODO display all parallel processes
+# TODO maybe display and edit ALL steps in one markdown? Can we scroll to specific point?
+# TODO display the process as a flowchart
+# TODO display the process as a Gantt chart
+# TODO display the process as a Kanban board
+# TODO display the process as a calendar
+# TODO display the process as a list
+# TODO generate every single step and resource as a separate document
+# TODO generate every single step as a separate document with all referred objects included
+# TODO generate full map of all steps and resources
+# TODO generate all steps in one document with internal links
+# TODO generate all steps at one location in one document with internal links and all referred objects included
+
 class MFGDocsApp:
     """Holder of the "page" object, handling all the necessary setup and functionality of the global UI.
     """
@@ -180,12 +207,12 @@ class MFGDocsApp:
     def edit_visible_step_inputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
-        dlg = StepResourceListEditor(self, step, step.inputparts, 'inputparts', f'Input parts for {step.key}')
+        dlg = StepResourceListEditor(self, step, step.inputparts, 'parts', f'Input parts for {step.key}')
         self.edit_popup_editordialog(dlg)
     def edit_visible_step_outputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
-        dlg = StepResourceListEditor(self, step, step.outputparts, 'outputparts', f'Output parts for {step.key}')
+        dlg = StepResourceListEditor(self, step, step.outputparts, 'parts', f'Output parts for {step.key}')
         self.edit_popup_editordialog(dlg)
     def edit_visible_step_roles(self, e):
         del e
