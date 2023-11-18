@@ -59,7 +59,9 @@ class Storage:
         self.load_json(self.cache_companies, '/data/companies.json', Company)
         self.load_json(self.cache_steps, '/data/steps.json', Step)
 
-    def load_json(self, cache, filename, classname):
+    def load_json(self, cache, filename, classname, no_clear_before_load=False):
+        if not no_clear_before_load:
+            cache.clear()
         f_name = Config.workdir + filename.replace('/', os.sep)
         try:
             with open(f_name, mode='rt', encoding='utf-8') as json_file:
