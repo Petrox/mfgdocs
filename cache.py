@@ -2,11 +2,14 @@
 In-memory caching of key-value pairs with extra keys.
 
 """
+
+
 class Cache:
     """
     Implements a flexible generic storage mechanism with multiple indexes to access data.
 
     """
+
     def __init__(self, name):
         self.name = name
         self.data = {}
@@ -38,6 +41,17 @@ class Cache:
         if pk not in self.data:
             return default
         return self.data[pk]
+
+    def get_by_unique_key(self, key, value):
+        print(f'cache: {self.name} get_by_unique_key({key}, {value})')
+        if key not in self.index:
+            return None
+        if value not in self.index[key]:
+            return None
+        keylist = self.index[key][value]
+        if len(keylist) != 1:
+            return None
+        return self.data[keylist[0]]
 
     def list_by_key(self, key, value):
         if key not in self.index:
