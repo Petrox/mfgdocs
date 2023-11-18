@@ -13,9 +13,8 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
-# TODO fix location picker
 # TODO add "new item" to the editor dialogs
-# TODO add "by contractor" like locations
+# TODO add "by company" like locations
 # TODO add embedded editor features into markdown
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -263,6 +262,7 @@ class MFGDocsApp:
 
     def load_mainmarkdown(self, key):
         self.visible_step_key = key
+        print(f'Location {self.storage.cache_steps.data[key].location}')
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
         self.ctrl['mainmarkdown'].update()
 

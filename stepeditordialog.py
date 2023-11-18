@@ -36,7 +36,7 @@ class StepEditorDialog:
                                                   ft.TextField(label='Name', dense=True, value=self.step.name,
                                                                on_change=lambda e: setattr(self.step, 'name',
                                                                                            e.control.value)),
-                                                  ft.Dropdown(label='Location', dense=True,  # value=self.step.location,
+                                                  ft.Dropdown(label='Location', dense=True,  value=self.step.location,
                                                               options=list(
                                                                   map(lambda x: ft.dropdown.Option(x.key, x.name),
                                                             self.mfgdocsapp.storage.cache_locations.data.values())),
