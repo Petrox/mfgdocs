@@ -117,6 +117,8 @@ class Step(Resource):
 
     def __init__(self):
         super().__init__()
+        self.cleanup_text = ''
+        self.prepare_text = ''
         self.consumables = {}
         self.acceptance = ''
         self.actions = {}
@@ -146,6 +148,8 @@ class Step(Resource):
         self.company = d.get('company', None)
         self.actions = d.get('actions', {})
         self.acceptance = d.get('acceptance', '')
+        self.prepare_text = d.get('prepare_text', '')
+        self.cleanup_text = d.get('cleanup_text', '')
         self.start_after = d.get('start_after', {})
         self.start_after_start = d.get('start_after_start', {})
         self.prepare_hours = d.get('prepare_time', 0)
@@ -161,7 +165,8 @@ class Step(Resource):
             'roles': self.roles,
             'actions': self.actions,
             'consumables': self.consumables,
-            'location': self.location,
+            'prepare_text': self.prepare_text,
+            'cleanup_text': self.cleanup_text,
             'company': self.company,
             'acceptance': self.acceptance,
             'start_after': self.start_after,
@@ -297,6 +302,8 @@ class Step(Resource):
         if (containstext in self.name
                 or containstext in self.description
                 or containstext in self.acceptance
+                or containstext in self.prepare_text
+                or containstext in self.cleanup_text
                 or containstext in self.key):
             return True
         if containstext in self.location:
