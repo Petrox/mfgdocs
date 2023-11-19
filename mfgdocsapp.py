@@ -14,7 +14,7 @@ from storage import Storage
 
 
 # TODO add "new item" to the editor dialogs
-# TODO add embedded editor features into markdown
+# TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
 # TODO import from inventree
@@ -61,27 +61,27 @@ class MFGDocsApp:
                                                 on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
 
-        stepeditorbuttons = ft.Row(expand=False, wrap=True, controls=[
-            ft.ElevatedButton(icon=ft.icons.EDIT, col=1, text='Edit Step', on_click=self.edit_visible_step),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Input parts',
-                              on_click=self.edit_visible_step_inputparts),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Output parts',
-                              on_click=self.edit_visible_step_outputparts),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Roles', on_click=self.edit_visible_step_roles),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Actions',
-                              on_click=self.edit_visible_step_actions),
-            ft.ElevatedButton(icon=ft.icons.EDIT_NOTE, col=1, text='Machines',
-                              on_click=self.edit_visible_step_machines),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Tools', on_click=self.edit_visible_step_tools),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Consumables',
-                              on_click=self.edit_visible_step_consumables),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='After Dependencies',
-                              on_click=self.edit_visible_step_start_after),
-            ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Parallel Dependencies',
-                              on_click=self.edit_visible_step_start_after_start), ])
+        # stepeditorbuttons = ft.Row(expand=False, wrap=True, controls=[
+        #     ft.ElevatedButton(icon=ft.icons.EDIT, col=1, text='Edit Step', on_click=self.click_step_edit),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Input parts',
+        #                       on_click=self.click_step_edit_inputparts),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Output parts',
+        #                       on_click=self.click_step_edit_outputparts),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Roles', on_click=self.click_step_edit_roles),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Actions',
+        #                       on_click=self.click_step_edit_actions),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_NOTE, col=1, text='Machines',
+        #                       on_click=self.click_step_edit_machines),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Tools', on_click=self.click_step_edit_tools),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Consumables',
+        #                       on_click=self.click_step_edit_consumables),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='After Dependencies',
+        #                       on_click=self.click_step_edit_start_after),
+        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Parallel Dependencies',
+        #                       on_click=self.click_step_edit_start_after_start), ])
         self.maincontent.content = ft.Column(expand=True,
                                              scroll=ft.ScrollMode.ALWAYS,
-                                             controls=[stepeditorbuttons,
+                                             controls=[ #stepeditorbuttons,
                                                        self.ctrl['mainmarkdown']
                                                        ])
         self.page.title = 'MFGDocs'
@@ -148,7 +148,10 @@ class MFGDocsApp:
 
     def markdown_link_tap(self, event):
         print(f'Link tapped: {event.data}')
-        self.page.launch_url(event.data)
+        if event.data.startswith('click://'):
+            self.handle_click_link(event)
+        else:
+            self.page.launch_url(event.data)
 
     def show_searchresults(self):
         self.ctrl['check_panel_searchresults'].value = True
@@ -199,7 +202,7 @@ class MFGDocsApp:
         self.ctrl['panel_searchresults_container'].visible = self.ctrl['check_panel_searchresults'].value
         self.ctrl['panel_searchresults_container'].update()
 
-    def edit_visible_step(self, e):
+    def click_step_edit(self, e):
         del e
         self.editor_dialog = StepEditorDialog(self, self.storage.cache_steps.data[self.visible_step_key])
         self.page.dialog = self.editor_dialog.dialog
@@ -207,51 +210,51 @@ class MFGDocsApp:
         self.page.dialog.open = True
         self.page.update()
 
-    def edit_visible_step_inputparts(self, e):
+    def click_step_edit_inputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.inputparts, 'parts', f'Input parts for {step.key}')
         self.edit_popup_editordialog(dlg)
-    def edit_visible_step_outputparts(self, e):
+    def click_step_edit_outputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.outputparts, 'parts', f'Output parts for {step.key}')
         self.edit_popup_editordialog(dlg)
-    def edit_visible_step_roles(self, e):
+    def click_step_edit_roles(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.roles, 'roles', f'Roles for {step.key}')
         self.edit_popup_editordialog(dlg)
-    def edit_visible_step_tools(self, e):
+    def click_step_edit_tools(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.tools, 'tools', f'Tools used for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def edit_visible_step_machines(self, e):
+    def click_step_edit_machines(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.machines, 'machines', f'Machines used for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def edit_visible_step_consumables(self, e):
+    def click_step_edit_consumables(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.consumables, 'consumables', f'Consumables used in {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def edit_visible_step_actions(self, e):
+    def click_step_edit_actions(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.actions, 'actions', f'Actions used for {step.key}')
         self.edit_popup_editordialog(dlg)
-    def edit_visible_step_start_after(self, e):
+    def click_step_edit_start_after(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.start_after, 'start_after',
                                      f'{step.key} dependencies start_after')
         self.edit_popup_editordialog(dlg)
-    def edit_visible_step_start_after_start(self, e):
+    def click_step_edit_start_after_start(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.start_after_start, 'start_after_start',
@@ -266,7 +269,6 @@ class MFGDocsApp:
 
     def load_mainmarkdown(self, key):
         self.visible_step_key = key
-        print(f'Location {self.storage.cache_steps.data[key].location}')
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
         self.ctrl['mainmarkdown'].update()
 
@@ -303,3 +305,39 @@ class MFGDocsApp:
 
     def main(self):
         pass
+
+    def handle_click_link(self, event):
+        url = event.data
+        # decode url parts (click://edit_step_inputparts/47)
+        url = url.replace('click://', '')
+        url_parts = url.split('/')
+        if len(url_parts) < 2:
+            return
+        action = url_parts[0]
+        #pk = url_parts[1]
+        if action == 'step_edit':
+            self.click_step_edit(None)
+        elif action == 'step_edit_inputparts':
+            self.click_step_edit_inputparts(None)
+        elif action == 'step_edit_outputparts':
+            self.click_step_edit_outputparts(None)
+        elif action == 'step_edit_roles':
+            self.click_step_edit_roles(None)
+        elif action == 'step_edit_actions':
+            self.click_step_edit_actions(None)
+        elif action == 'step_edit_machines':
+            self.click_step_edit_machines(None)
+        elif action == 'step_edit_tools':
+            self.click_step_edit_tools(None)
+        elif action == 'step_edit_consumables':
+            self.click_step_edit_consumables(None)
+        elif action == 'step_edit_start_after':
+            self.click_step_edit_start_after(None)
+        elif action == 'step_edit_start_after_start':
+            self.click_step_edit_start_after_start(None)
+        else:
+            print(f'Unknown action: {action}')
+
+
+
+

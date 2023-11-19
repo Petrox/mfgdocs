@@ -27,9 +27,9 @@ class RenderMarkdown:
         """
         s = self.mfgdocsapp.storage
         md = f'''
-# {step.key} {step.name}
- - Responsible: {self.lookup_single_item(step.company, s.cache_companies.data)} at location {self.lookup_single_item(step.location, s.cache_locations.data)}
-| Input | Output | Roles | Actions | Machines | Tools | Consumables |
+# {step.key} {step.name} [:pencil2:](click://step_edit/{step.pk})
+ - :busts_in_silhouette: {self.lookup_single_item(step.company, s.cache_companies.data)} :round_pushpin: {self.lookup_single_item(step.location, s.cache_locations.data)} :clock1: {step.prepare_hours} :clock2: {step.cooldown_hours}
+| Input [:pencil2:](click://step_edit_inputparts/{step.pk})| Output [:pencil2:](click://step_edit_outputparts/{step.pk})| Roles [:pencil2:](click://step_edit_roles/{step.pk})| Actions [:pencil2:](click://step_edit_actions/{step.pk})| Machines [:pencil2:](click://step_edit_machines/{step.pk})| Tools [:pencil2:](click://step_edit_tools/{step.pk})| Consumables [:pencil2:](click://step_edit_consumables/{step.pk})|
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | {self.list_amounts_pre(step.inputparts, s.cache_parts.data, separator='  ')} | {
         self.list_amounts_pre(step.outputparts, s.cache_parts.data, separator='  ')} | {
@@ -39,11 +39,17 @@ class RenderMarkdown:
         self.list_amounts_pre(step.tools, s.cache_tools.data, separator='  ')} | {
         self.list_amounts_pre(step.consumables, s.cache_consumables.data, separator='  ')} |
 
+{'## Prepare' if len(step.prepare_text.strip()) > 0 else ''}
+{step.prepare_text}
+
 {'## Description' if len(step.description.strip()) > 0 else ''}
 {step.description}
 
 {'## Acceptance criteria' if len(step.acceptance.strip()) > 0 else ''}
 {step.acceptance}
+
+{'## Cleanup' if len(step.cleanup_text.strip()) > 0 else ''}
+{step.cleanup_text}
 
 {'## Depends on ' if len(step.start_after) > 0 else ''}
 
