@@ -22,7 +22,7 @@ class StepEditorDialog:
         self.dialog.title = ft.Text(f'Step Editor {self.step.key}')
         self.dialog.content = self.get_content()
         self.dialog.actions = [ft.TextButton('Cancel', on_click=self.dialog_cancel),
-                               ft.TextButton('Preview', on_click=self.dialog_preview),
+                               #ft.TextButton('Preview', on_click=self.dialog_preview),
                                ft.TextButton('Save', on_click=self.dialog_save)]
         self.dialog.actions_alignment = 'end'
         self.dialog.shape = ft.BeveledRectangleBorder()
@@ -48,9 +48,15 @@ class StepEditorDialog:
             ft.TextField(label='Description', dense=True, multiline=True,
                          min_lines=2, max_lines=20, value=self.step.description,
                          on_change=lambda e: setattr(self.step, 'description',e.control.value)),
+            ft.TextField(label='Prepare', dense=True, multiline=True,
+                         min_lines=2, max_lines=20, value=self.step.prepare_text,
+                         on_change=lambda e: setattr(self.step, 'prepare_text',e.control.value)),
             ft.TextField(label='Acceptance criteria', dense=True, multiline=True,
                          min_lines=1, max_lines=6, value=self.step.acceptance,
                          on_change=lambda e: setattr(self.step, 'acceptance',e.control.value)),
+            ft.TextField(label='Cleanup', dense=True, multiline=True,
+                         min_lines=2, max_lines=20, value=self.step.cleanup_text,
+                         on_change=lambda e: setattr(self.step, 'cleanup_text', e.control.value)),
             ft.Row([ft.TextField(label='Prepare hours',
                                  dense=True,
                                  width=200,
