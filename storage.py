@@ -27,6 +27,21 @@ class Storage:
         self.mfgdocsapp = mfgdocsapp
         self.load_resources()
 
+    def cache_by_resource_type(self,resource_type):
+        cache_map = {
+            'actions': self.cache_actions,
+            'roles': self.cache_roles,
+            'tools': self.cache_tools,
+            'steps': self.cache_steps,
+            'parts': self.cache_parts,
+            'companies': self.cache_companies,
+            'locations': self.cache_locations,
+            'machines': self.cache_machines,
+            'consumables': self.cache_consumables,
+        }
+        if resource_type in cache_map:
+            return cache_map[resource_type]
+        return None
     def get_resource_by_type_and_key(self, res_type: str, key: str):
         print(f'storage.get_resource_by_type_and_key({res_type}, {key})')
 
