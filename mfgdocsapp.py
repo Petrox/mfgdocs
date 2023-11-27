@@ -13,7 +13,10 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
-# TODO add "new item" to the editor dialogs
+# TODO add "final" property to step model and editor dialog and display
+# TODO add units to the editor dialogs and display
+# TODO add items to new rows in the markdown table
+# TODO try to embed svg in markdown
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -60,25 +63,6 @@ class MFGDocsApp:
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                                                 on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
-
-        # stepeditorbuttons = ft.Row(expand=False, wrap=True, controls=[
-        #     ft.ElevatedButton(icon=ft.icons.EDIT, col=1, text='Edit Step', on_click=self.click_step_edit),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Input parts',
-        #                       on_click=self.click_step_edit_inputparts),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Output parts',
-        #                       on_click=self.click_step_edit_outputparts),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Roles', on_click=self.click_step_edit_roles),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Actions',
-        #                       on_click=self.click_step_edit_actions),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_NOTE, col=1, text='Machines',
-        #                       on_click=self.click_step_edit_machines),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Tools', on_click=self.click_step_edit_tools),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Consumables',
-        #                       on_click=self.click_step_edit_consumables),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='After Dependencies',
-        #                       on_click=self.click_step_edit_start_after),
-        #     ft.ElevatedButton(icon=ft.icons.EDIT_SQUARE, col=1, text='Parallel Dependencies',
-        #                       on_click=self.click_step_edit_start_after_start), ])
         self.maincontent.content = ft.Column(expand=True,
                                              scroll=ft.ScrollMode.ALWAYS,
                                              controls=[ #stepeditorbuttons,

@@ -3,14 +3,17 @@ A user control to edit a list of resources and their quantities.
 """
 import flet as ft
 from frontend import Frontend
+from model import Resource
 from storage import Storage
 
 
 class IngredientListEditor(ft.UserControl):
     """Item list and quantity editor."""
 
-    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage:Storage=None):
+    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None):
         super().__init__()
+        self.maincontrol = None
+        self.amount = None
         self.storage = storage
         if items is None:
             items = {}
@@ -52,9 +55,9 @@ class IngredientListEditor(ft.UserControl):
         self.controls = [ft.Text(self.label, color=self.color, style=ft.TextThemeStyle.LABEL_LARGE)]
         for k, v in self.items.items():
             item = self.storage.get_resource_by_type_and_key(res_type=self.resource_type, key=k)
-            searchitem = self.get_searchitem(item)
-            if searchitem is None:
-                searchitem = ft.Text(f'Unknown: {k}', style=ft.TextThemeStyle.LABEL_LARGE, selectable=True)
+            search_item = self.get_searchitem(item)
+            if search_item is None:
+                search_item = ft.Text(f'Unknown: {k}', style=ft.TextThemeStyle.LABEL_LARGE, selectable=True)
             item_ctrl = ft.Row(data={'key': k, 'value': v},
                                controls=[ft.TextField(label='Amount',
                                                       value=v,
@@ -64,10 +67,83 @@ class IngredientListEditor(ft.UserControl):
                                                       data={'key': k, 'value': v},
                                                       on_change=self.set_amount),
                                          ft.Text(' x ', style=ft.TextThemeStyle.LABEL_SMALL),
-                                         searchitem,
+                                         search_item,
                                          # ft.Text(k, style=ft.TextThemeStyle.LABEL_LARGE,selectable=True),
                                          ft.IconButton(icon=ft.icons.DELETE, data={'key': k, 'value': v},
                                                        on_click=self.click_remove)])
             self.controls.append(item_ctrl)
-        self.maincontrol = ft.Column(expand=True, controls=self.controls)
+
+        self.controls.append(ft.Divider())
+        self.controls.append(ft.Text('Add Item', color='white', style=ft.TextThemeStyle.HEADLINE_MEDIUM))
+        self.amount = ft.TextField(label='Amount',
+                                   dense=True,
+                                   text_align=ft.TextAlign.RIGHT,
+                                   on_change=self.update_add_button,
+                                   on_submit=self.update_add_button,
+                                   value='1',
+                                   icon=ft.icons.NUMBERS)
+        self.drop = ft.Dropdown(label='Item', dense=True, value=None, options=[],
+                                on_change=self.update_add_button)
+        search = ft.TextField(label='Search',
+                              dense=True,
+                              on_submit=self.search_change)
+        searchbutton = ft.IconButton(icon=ft.icons.SEARCH, on_click=self.search_change)
+        search.data = {'searchfield': search, 'dropdown': self.drop}
+        searchbutton.data = {'searchfield': search, 'dropdown': self.drop}
+        self.addbutton = ft.ElevatedButton(icon=ft.icons.ADD, text="Add Item", on_click=self.click_add, disabled=True)
+        r = ft.Column(controls=[self.amount,
+                                ft.Row(controls=[search, searchbutton]),
+                                self.drop,
+                                self.addbutton])
+        self.controls.append(r)
+        if self.maincontrol is None:
+            self.maincontrol = ft.Column(expand=True, controls=self.controls)
+        else:
+            self.maincontrol.controls = self.controls
         return self.maincontrol
+
+    def search_change(self, event):
+        print('search_change')
+        search = event.control.data['searchfield']
+        drop = event.control.data['dropdown']
+        txt = search.value
+        results = self.find_items(self.storage.cache_by_resource_type(self.resource_type).data, txt)
+        drop.options = []
+        for r in results:
+            if r['key'] not in self.items:
+                drop.options.append(ft.dropdown.Option(r['key'], r['key']+' - '+r['value']))
+        drop.update()
+        self.update_add_button()
+        self.maincontrol.update()
+
+    def update_add_button(self, event=None):
+        del event
+        if self.addbutton is None:
+            return
+        if self.amount is None or self.drop is None:
+            self.addbutton.disabled = True
+        elif len(self.drop.options) == 0:
+            self.addbutton.disabled = True
+        elif self.drop.value is None:
+            self.addbutton.disabled = True
+        elif float(self.amount.value.strip()) <= 0:
+            self.addbutton.disabled = True
+        else:
+            self.addbutton.disabled = False
+        self.addbutton.update()
+
+
+    def click_add(self, event):
+        del event
+        self.items[self.drop.value] = float(self.amount.value.strip())
+        self.build()
+        self.maincontrol.update()
+
+    def find_items(self, items, txt):
+        results = []
+        v: Resource
+        k: str
+        for k, v in items.items():
+            if v.contains(txt):
+                results.append({'key':k,'value':v.name})
+        return results
