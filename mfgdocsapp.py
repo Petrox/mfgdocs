@@ -13,10 +13,7 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
-# TODO add final property to editor dialog and display
-# TODO add qcfailstep property to step editor and display
-# TODO add units to the editor dialogs and display
-# TODO add items to new rows in the markdown table
+# TODO add Markdown formatting help link to main screen
 # TODO try to embed svg in markdown
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
@@ -25,7 +22,8 @@ from storage import Storage
 # TODO import images from inventree
 # TODO check for minimal amounts (one input part at least, one role, one output part, etc)
 # TODO check keyword: "requires" "suggests"  and "provides"
-# TODO STEP to follow when acceptance test fails
+# TODO check that output parts must not be input parts
+# TODO circular dependency detection (do we need it? maybe not)
 # TODO Support decision points (Yes-No or multiple outcome) in the process and tag the output accordingly
 # TODO display all uplink steps and parts
 # TODO display all downwind steps and parts

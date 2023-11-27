@@ -35,13 +35,13 @@ class StepEditorDialog:
                          on_change=lambda e: setattr(self.step, 'name', e.control.value)),
             ft.Dropdown(label='Location', dense=True, value=self.step.location,
                         options=list(
-                            map(lambda x: ft.dropdown.Option(x.key, x.name),
+                            map(lambda x: ft.dropdown.Option(x.key, x.key + ' - ' + x.name),
                                 self.mfgdocsapp.storage.cache_locations.data.values())),
                         on_change=lambda e: setattr(self.step, 'location', e.control.value)
                         ),
-            ft.Dropdown(label='Reponsible', dense=True, value=self.step.company,
+            ft.Dropdown(label='Responsible company', dense=True, value=self.step.company,
                         options=list(
-                            map(lambda x: ft.dropdown.Option(x.key, x.name),
+                            map(lambda x: ft.dropdown.Option(x.key, x.key + ' - ' + x.name),
                                 self.mfgdocsapp.storage.cache_companies.data.values())),
                         on_change=lambda e: setattr(self.step, 'company',e.control.value)
                         ),
@@ -54,6 +54,15 @@ class StepEditorDialog:
             ft.TextField(label='Acceptance criteria', dense=True, multiline=True,
                          min_lines=1, max_lines=6, value=self.step.acceptance,
                          on_change=lambda e: setattr(self.step, 'acceptance',e.control.value)),
+            ft.Dropdown(label='What if quality check fails?', dense=True, value=self.step.qcfailstep,
+                        options=list(
+                            map(lambda x: ft.dropdown.Option(x.key, x.key + ' - ' + x.name),
+                                self.mfgdocsapp.storage.cache_steps.data.values())),
+                        on_change=lambda e: setattr(self.step, 'qcfailstep', e.control.value)
+                        ),
+            ft.Checkbox(label='All Outputs are final', value=self.step.final,
+                        on_change=lambda e: setattr(self.step, 'final', e.control.value)
+                        ),
             ft.TextField(label='Cleanup', dense=True, multiline=True,
                          min_lines=2, max_lines=20, value=self.step.cleanup_text,
                          on_change=lambda e: setattr(self.step, 'cleanup_text', e.control.value)),
