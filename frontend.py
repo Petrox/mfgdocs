@@ -28,9 +28,11 @@ class Frontend:
                                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
         return c
 
-    def get_searchresultitem_step(self, item: Part or int) -> ft.Control:
+    def get_searchresultitem_step(self, item: Part or int or str) -> ft.Control:
         if isinstance(item, int):
             item: Step = self.mfgdocsapp.storage.cache_steps.data[item]
+        if isinstance(item, str):
+            item: Step = self.mfgdocsapp.storage.cache_steps.get_by_unique_key('key',item)
         c = ft.Container()
         c.key = item.key
         c.bgcolor = ft.colors.LIGHT_BLUE_400
