@@ -13,7 +13,8 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
-# TODO add "final" property to step model and editor dialog and display
+# TODO add final property to editor dialog and display
+# TODO add qcfailstep property to step editor and display
 # TODO add units to the editor dialogs and display
 # TODO add items to new rows in the markdown table
 # TODO try to embed svg in markdown

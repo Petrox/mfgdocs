@@ -129,6 +129,7 @@ class Step(Resource):
 
     def __init__(self):
         super().__init__()
+        self.qcfailstep = None
         self.cleanup_text = ''
         self.prepare_text = ''
         self.consumables = {}
@@ -152,6 +153,7 @@ class Step(Resource):
         self.inputparts = d.get('inputparts', {})
         self.outputparts = d.get('outputparts', {})
         self.final = d.get('final', False)
+        self.qcfailstep = d.get('qcfailstep', False)
         self.tools = d.get('tools', {})
         self.machines = d.get('machines', {})
         self.roles = d.get('roles', {})
@@ -174,6 +176,7 @@ class Step(Resource):
             'tools': self.tools,
             'machines': self.machines,
             'final': self.final,
+            'qcfailstep': self.qcfailstep,
             'roles': self.roles,
             'actions': self.actions,
             'consumables': self.consumables,
