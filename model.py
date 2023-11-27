@@ -306,13 +306,14 @@ class Step(Resource):
                 or containstext in self.cleanup_text
                 or containstext in self.key):
             return True
-        if containstext in self.location:
+        if self.location is not None and containstext in self.location:
             return True
         if self.multi_partial_keymatch([self.inputparts, self.outputparts,
                                         self.tools, self.actions,
                                         self.machines, self.roles,
                                         self.consumables], containstext):
             return True
+        return False
 
     def partial_keymatch(self, dictionary, text) -> bool:
         """Returns true if any key or name or description in the dictionary contains the text."""
