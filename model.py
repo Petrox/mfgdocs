@@ -7,6 +7,7 @@ class Entity:
     """The Item represents one entity in the model"""
     pk = None
     key = ''
+    unit = ''
     keywords = ''
 
     def set_id(self, pk):
@@ -18,11 +19,13 @@ class Entity:
     def from_dict(self, d: dict):
         self.pk = d.get('pk', '')
         self.key = d.get('key', '')
+        self.unit = d.get('unit', '')
         self.keywords = d.get('keywords', '')
 
     def to_dict(self):
         return {'pk': self.pk,
                 'key': self.key,
+                'unit': self.unit,
                 'keywords': self.keywords}
 
     def extrakeys(self):
@@ -41,6 +44,15 @@ class Resource(Entity):
         self.description = ''
         self.image = ''
         self.color = ''
+
+    def contains(self, txt: str):
+        """Returns true if the resource contains the text."""
+        txt = txt.lower()
+        if (txt in self.name.lower()
+                or txt in self.description.lower()
+                or txt in self.key.lower()):
+            return True
+        return False
 
     def to_dict(self):
         return super().to_dict() | {
@@ -298,20 +310,24 @@ class Step(Resource):
     def set_cooldown_hours(self, cooldown_hours: float):
         self.cooldown_hours = cooldown_hours
 
-    def contains(self, containstext: str):
-        if (containstext in self.name
-                or containstext in self.description
-                or containstext in self.acceptance
-                or containstext in self.prepare_text
-                or containstext in self.cleanup_text
-                or containstext in self.key):
+    def contains(self, txt: str):
+        """Returns true if the step contains the text."""
+        if super().contains(txt):
             return True
-        if self.location is not None and containstext in self.location:
+        txt = txt.lower()
+        if (txt in self.name.lower()
+                or txt in self.description.lower()
+                or txt in self.acceptance.lower()
+                or txt in self.prepare_text.lower()
+                or txt in self.cleanup_text.lower()
+                or txt in self.key.lower()):
+            return True
+        if self.location is not None and txt in self.location.lower():
             return True
         if self.multi_partial_keymatch([self.inputparts, self.outputparts,
                                         self.tools, self.actions,
                                         self.machines, self.roles,
-                                        self.consumables], containstext):
+                                        self.consumables], txt):
             return True
         return False
 
@@ -319,9 +335,10 @@ class Step(Resource):
         """Returns true if any key or name or description in the dictionary contains the text."""
         for key in dictionary.keys():
             # if text in key or text in value.name or text in value.description:
-            # TODO it would be nice to look up every relation
+            # TODO it could be nice to look up every relation
             #  and check if it contains the text too, not just look for the keys
-            if text in key:
+            #  but it could cause too much noise probably
+            if text in key.lower():
                 return True
         return False
 
