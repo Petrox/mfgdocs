@@ -85,6 +85,19 @@ class Part(Resource):
         super().from_dict(d)
         self.bom = d.get('bom', {})
 
+    @staticmethod
+    def extract_stepkey(composite_key: str) -> (str, str):
+        """Returns the beginning of the key and the step number between parenthesis as a tuple."""
+        key = composite_key.strip()
+        if '(' in key:
+            key, step = key.split('(', 1)
+            if ')' in step:
+                step = step[:step.index(')')]
+                return key.strip(), step.strip()
+            else:
+                return composite_key.strip(), None
+        return key.strip(), None
+
 
 class Action(Resource):
     """Represents a basic action in the technology.
