@@ -14,6 +14,7 @@ from storage import Storage
 
 
 # TODO try to embed svg in markdown
+# TODO add other steps outputs (with final/not final tags) to the input part dropdown options
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -201,7 +202,7 @@ class MFGDocsApp:
     def click_step_edit_inputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
-        dlg = StepResourceListEditor(self, step, step.inputparts, 'parts', f'Input parts for {step.key}')
+        dlg = StepResourceListEditor(self, step, step.inputparts, 'parts', f'Input parts for {step.key}', is_inputpart=True)
         self.edit_popup_editordialog(dlg)
     def click_step_edit_outputparts(self, e):
         del e

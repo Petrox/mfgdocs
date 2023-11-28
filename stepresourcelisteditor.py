@@ -16,7 +16,8 @@ class StepResourceListEditor():
     dialog: ft.AlertDialog
     original_step: dict
 
-    def __init__(self, mfgdocsapp: 'MFGDocsApp', step: Step, itemlist:dict, resource_type: str, title: str):
+    def __init__(self, mfgdocsapp: 'MFGDocsApp', step: Step, itemlist:dict, resource_type: str, title: str, is_inputpart: bool = False):
+        self.is_inputpart = is_inputpart
         self.itemlist = itemlist
         self.title = title
         self.resource_type = resource_type
@@ -40,7 +41,8 @@ class StepResourceListEditor():
                                                   IngredientListEditor('',
                                                                        self.itemlist,
                                                                        resource_type=self.resource_type,
-                                                                       storage=self.mfgdocsapp.storage),
+                                                                       storage=self.mfgdocsapp.storage,
+                                                                       is_inputpart=self.is_inputpart)
                                               ]))
 
     def dialog_cancel(self, e):

@@ -1,17 +1,20 @@
 """
 A user control to edit a list of resources and their quantities.
 """
+from typing import Any
+
 import flet as ft
 from frontend import Frontend
-from model import Resource
+from model import Resource, Step, Part
 from storage import Storage
 
 
 class IngredientListEditor(ft.UserControl):
     """Item list and quantity editor."""
 
-    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None):
+    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None, is_inputpart: bool = False):
         super().__init__()
+        self.is_inputpart = is_inputpart
         self.maincontrol = None
         self.amount = None
         self.storage = storage
@@ -112,6 +115,17 @@ class IngredientListEditor(ft.UserControl):
         for r in results:
             if r['key'] not in self.items:
                 drop.options.append(ft.dropdown.Option(r['key'], r['key']+' - '+r['value']))
+
+        if self.is_inputpart:
+
+            stepx: Step
+            for stepx in self.storage.cache_steps.data.values():
+                if stepx.outputparts is not None:
+                    for partkey in stepx.outputparts.keys():
+                        partx: Part =self.storage.cache_parts.get_by_unique_key('key',partkey)
+                        if partx.contains(txt):
+                            drop.options.append(ft.dropdown.Option(partx.key,
+                                                                   partx.key + '('+stepx.key+') - ' + partx.name))
         drop.update()
         self.update_add_button()
         self.maincontrol.update()
