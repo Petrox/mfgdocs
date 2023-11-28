@@ -13,7 +13,6 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 # TODO try to embed svg in markdown
-# TODO add other steps outputs (with final/not final tags) to the input part dropdown options
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -22,8 +21,10 @@ from storage import Storage
 # TODO check for minimal amounts (one input part at least, one role, one output part, etc)
 # TODO check keyword: "requires" "suggests"  and "provides"
 # TODO check that output parts must not be input parts
+# TODO validate() step method with error display
+# TODO markdown helpers for steps: warnings, errors, info, questionmark, checkmark, images etc
 # TODO circular dependency detection (do we need it? maybe not)
-# TODO Support decision points (Yes-No or multiple outcome) in the process and tag the output accordingly
+# TODO optional Support decision points (Yes-No or multiple outcome) in the process and tag the output accordingly
 # TODO display all uplink steps and parts
 # TODO display all downwind steps and parts
 # TODO display all parallel processes
