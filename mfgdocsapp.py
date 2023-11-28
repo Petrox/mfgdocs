@@ -11,8 +11,14 @@ from rendermarkdown import RenderMarkdown
 from stepeditordialog import StepEditorDialog
 from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
+from view import ViewStep
+
 
 # TODO try to embed svg in markdown
+# TODO document start_after
+# TODO document start_after_start
+# TODO document inputparts dependency
+# TODO document outputparts dependency
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
 # TODO upload manage delete other files (?)
@@ -39,6 +45,15 @@ from storage import Storage
 # TODO generate full map of all steps and resources
 # TODO generate all steps in one document with internal links
 # TODO generate all steps at one location in one document with internal links and all referred objects included
+# TODO all printed material should have a QR code that links to the online version
+# TODO all printed materials should have a document id/date/version in the footer
+# TODO all generated reports should be stored as file and as database entry to reproduce them later
+# TODO optional handle "build orders" (eg a list of steps to be done and generate a document with all steps and resources for each company involved)
+# TODO optional integration so that external companies can be invited to participate in the process and their process steps can be tracked and followed (eg send an email with links to steps)
+# TODO optional integration handle availability of resources (machines, tools, roles, actions), maybe with a calendar integration, or a calendar view
+# TODO optional integration generate calendar events for all steps via shared calendar (and update it along the way)
+# TODO optional integration generate a list of steps to be done today (every day) and send it via email or chat to participants
+
 
 class MFGDocsApp:
     """Holder of the "page" object, handling all the necessary setup and functionality of the global UI.
@@ -62,7 +77,7 @@ class MFGDocsApp:
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                                                 on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
-        self.maincontent.content = ft.Column(expand=True,
+        self.maincontent.content = ft.Column(expand=3,
                                              scroll=ft.ScrollMode.ALWAYS,
                                              controls=[  # stepeditorbuttons,
                                                  self.ctrl['mainmarkdown']
@@ -78,10 +93,11 @@ class MFGDocsApp:
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
                                              filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
         self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')], visible=False)
-        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')])
+        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')],expand=True)
         self.ctrl['panel_searchresults_container'] = ft.Container(
             self.ctrl['panel_searchresults'],
             expand=True,
+            width=200,
             margin=10,
             padding=10,
             bgcolor=ft.colors.BLUE_GREY_800,
@@ -270,7 +286,13 @@ class MFGDocsApp:
 
     def load_mainmarkdown(self, key):
         self.visible_step_key = key
-        self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(self.storage.cache_steps.data[key])
+        step=self.storage.cache_steps.data[key]
+        self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(step)
+        #print(f'load_mainmarkdown {key}')
+        #print(f'ViewStep.find_steps_this_depends_on {ViewStep.find_steps_this_depends_on(step, self.storage)}')
+        #print(f'ViewStep.find_steps_depending_on_this {ViewStep.find_steps_depending_on_this(step, self.storage)}')
+        #print(f'ViewStep.find_steps_after_start_with_this {ViewStep.find_steps_after_start_with_this(step, self.storage)}')
+        #print(f'ViewStep.find_steps_which_start_after_this_starts {ViewStep.find_steps_which_start_after_this_starts(step, self.storage)}')
         self.ctrl['mainmarkdown'].update()
 
     def click_refresh(self, e):
