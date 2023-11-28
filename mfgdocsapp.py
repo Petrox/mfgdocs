@@ -13,7 +13,6 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
 
-# TODO add Markdown formatting help link to main screen
 # TODO try to embed svg in markdown
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
 # TODO upload, manage, delete images
@@ -89,16 +88,22 @@ class MFGDocsApp:
             visible=False,
             alignment=ft.alignment.top_center)
 
+        self.ctrl['emojihelp']: ft.IconButton = ft.IconButton(ft.icons.HELP,
+                                                              on_click=lambda e: self.page.launch_url("https://awes0mem4n.github.io/emojis-github.html"),
+                                                              tooltip='Emoji help')
+        self.ctrl['markdownhelp']: ft.IconButton = ft.IconButton(ft.icons.HELP_CENTER,
+                                                                 on_click=lambda e: self.page.launch_url("https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"),
+                                                                 tooltip='Markdown help')
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
-                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh),
-                      'feedback': ft.IconButton(ft.icons.FEEDBACK,
+                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,tooltip='Reload datafiles'),
+                      'feedback': ft.IconButton(ft.icons.FEEDBACK, tooltip='Send Feedback',
                                                 on_click=lambda _: self.page.launch_url(Config.feedback_url)),
                       }
         page.appbar = ft.AppBar(
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=False,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['contains'], self.ctrl['progressring'],
+            actions=[self.ctrl['markdownhelp'],self.ctrl['emojihelp'],self.ctrl['contains'], self.ctrl['progressring'],
                      self.ctrl['reload'], self.ctrl['feedback']]
         )
         self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
