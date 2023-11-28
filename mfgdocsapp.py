@@ -12,7 +12,7 @@ from stepeditordialog import StepEditorDialog
 from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
-
+# TODO convert float amounts to int if possible
 # TODO try to embed svg in markdown
 # TODO add other steps outputs (with final/not final tags) to the input part dropdown options
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
@@ -64,9 +64,9 @@ class MFGDocsApp:
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
         self.maincontent.content = ft.Column(expand=True,
                                              scroll=ft.ScrollMode.ALWAYS,
-                                             controls=[ #stepeditorbuttons,
-                                                       self.ctrl['mainmarkdown']
-                                                       ])
+                                             controls=[  # stepeditorbuttons,
+                                                 self.ctrl['mainmarkdown']
+                                             ])
         self.page.title = 'MFGDocs'
         self.page.theme_mode = ft.ThemeMode.DARK
         scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
@@ -90,13 +90,16 @@ class MFGDocsApp:
             alignment=ft.alignment.top_center)
 
         self.ctrl['emojihelp']: ft.IconButton = ft.IconButton(ft.icons.HELP,
-                                                              on_click=lambda e: self.page.launch_url("https://awes0mem4n.github.io/emojis-github.html"),
+                                                              on_click=lambda e: self.page.launch_url(
+                                                                  "https://awes0mem4n.github.io/emojis-github.html"),
                                                               tooltip='Emoji help')
         self.ctrl['markdownhelp']: ft.IconButton = ft.IconButton(ft.icons.HELP_CENTER,
-                                                                 on_click=lambda e: self.page.launch_url("https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"),
+                                                                 on_click=lambda e: self.page.launch_url(
+                                                                     "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"),
                                                                  tooltip='Markdown help')
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
-                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,tooltip='Reload datafiles'),
+                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,
+                                              tooltip='Reload datafiles'),
                       'feedback': ft.IconButton(ft.icons.FEEDBACK, tooltip='Send Feedback',
                                                 on_click=lambda _: self.page.launch_url(Config.feedback_url)),
                       }
@@ -104,7 +107,8 @@ class MFGDocsApp:
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=False,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['markdownhelp'],self.ctrl['emojihelp'],self.ctrl['contains'], self.ctrl['progressring'],
+            actions=[self.ctrl['markdownhelp'], self.ctrl['emojihelp'], self.ctrl['contains'],
+                     self.ctrl['progressring'],
                      self.ctrl['reload'], self.ctrl['feedback']]
         )
         self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
@@ -202,18 +206,23 @@ class MFGDocsApp:
     def click_step_edit_inputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
-        dlg = StepResourceListEditor(self, step, step.inputparts, 'parts', f'Input parts for {step.key}', is_inputpart=True)
+        dlg = StepResourceListEditor(self, step, step.inputparts,
+                                     'parts', f'Input parts for {step.key}', is_inputpart=True)
         self.edit_popup_editordialog(dlg)
+
     def click_step_edit_outputparts(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
-        dlg = StepResourceListEditor(self, step, step.outputparts, 'parts', f'Output parts for {step.key}')
+        dlg = StepResourceListEditor(self, step, step.outputparts,
+                                     'parts', f'Output parts for {step.key}')
         self.edit_popup_editordialog(dlg)
+
     def click_step_edit_roles(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.roles, 'roles', f'Roles for {step.key}')
         self.edit_popup_editordialog(dlg)
+
     def click_step_edit_tools(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
@@ -237,18 +246,21 @@ class MFGDocsApp:
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.actions, 'actions', f'Actions used for {step.key}')
         self.edit_popup_editordialog(dlg)
+
     def click_step_edit_start_after(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.start_after, 'start_after',
                                      f'{step.key} dependencies start_after')
         self.edit_popup_editordialog(dlg)
+
     def click_step_edit_start_after_start(self, e):
         del e
         step = self.storage.cache_steps.data[self.visible_step_key]
         dlg = StepResourceListEditor(self, step, step.start_after_start, 'start_after_start',
                                      f'Parallel dependencies for {step.key} start_after_start')
         self.edit_popup_editordialog(dlg)
+
     def edit_popup_editordialog(self, editor_dialog):
         self.editor_dialog = editor_dialog
         self.page.dialog = self.editor_dialog.dialog
@@ -267,7 +279,7 @@ class MFGDocsApp:
         self.ctrl['progressring'].update()
         self.storage.load_resources()
         self.load_mainmarkdown(self.visible_step_key)
-        #self.renderdot.render_bom_to_file()
+        # self.renderdot.render_bom_to_file()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
 
@@ -303,7 +315,7 @@ class MFGDocsApp:
         if len(url_parts) < 2:
             return
         action = url_parts[0]
-        #pk = url_parts[1]
+        # pk = url_parts[1]
         if action == 'step_edit':
             self.click_step_edit(None)
         elif action == 'step_edit_inputparts':
@@ -326,7 +338,3 @@ class MFGDocsApp:
             self.click_step_edit_start_after_start(None)
         else:
             print(f'Unknown action: {action}')
-
-
-
-

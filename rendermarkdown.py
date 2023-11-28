@@ -110,6 +110,10 @@ class RenderMarkdown:
         lst = []
         print(itemdict)
         for k, v in itemdict.items():
-            item = data[k]
+            try:
+                item = data[k]
+            except KeyError:
+                kk,stepkey = Part.extract_stepkey(k)
+                item = data[kk]
             lst.append(f"{v} {item.unit} x {k}{' '+append if append != '' else ''} - {item.name}")
         return lst

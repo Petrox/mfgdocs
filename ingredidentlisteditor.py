@@ -26,13 +26,13 @@ class IngredientListEditor(ft.UserControl):
         self.controls = []
         self.resource_type = resource_type
 
-    def get_searchitem(self, obj) -> ft.Control:
+    def get_searchitem(self, obj,key:str=None) -> ft.Control:
         if Frontend.singleton_frontend is None:
             return ft.Text('Frontend.singleton_frontend is None')
         if obj is None:
             return ft.Text('get_searchitem(None)')
         print(f'get_searchitem({obj})')
-        return Frontend.singleton_frontend.get_searchresultitem(obj)
+        return Frontend.singleton_frontend.get_searchresultitem(obj,key=key)
 
     def click_remove(self, event):
         key = event.control.data['key']
@@ -58,7 +58,7 @@ class IngredientListEditor(ft.UserControl):
         self.controls = [ft.Text(self.label, color=self.color, style=ft.TextThemeStyle.LABEL_LARGE)]
         for k, v in self.items.items():
             item = self.storage.get_resource_by_type_and_key(res_type=self.resource_type, key=k)
-            search_item = self.get_searchitem(item)
+            search_item = self.get_searchitem(item,k)
             if search_item is None:
                 search_item = ft.Text(f'Unknown: {k}', style=ft.TextThemeStyle.LABEL_LARGE, selectable=True)
             item_ctrl = ft.Row(data={'key': k, 'value': v},
@@ -117,14 +117,13 @@ class IngredientListEditor(ft.UserControl):
                 drop.options.append(ft.dropdown.Option(r['key'], r['key']+' - '+r['value']))
 
         if self.is_inputpart:
-
             stepx: Step
             for stepx in self.storage.cache_steps.data.values():
                 if stepx.outputparts is not None:
                     for partkey in stepx.outputparts.keys():
                         partx: Part =self.storage.cache_parts.get_by_unique_key('key',partkey)
                         if partx.contains(txt):
-                            drop.options.append(ft.dropdown.Option(partx.key,
+                            drop.options.append(ft.dropdown.Option(partx.key + '('+stepx.key+')',
                                                                    partx.key + '('+stepx.key+') - ' + partx.name))
         drop.update()
         self.update_add_button()

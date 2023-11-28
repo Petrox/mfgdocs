@@ -56,7 +56,8 @@ class Storage:
             'machines': self.cache_machines,
             'consumables': self.cache_consumables,
         }
-
+        if res_type == 'parts':
+            key, stepkey = Part.extract_stepkey(key)
         if res_type in cache_map:
             return cache_map[res_type].get_by_unique_key('key', key)
 
