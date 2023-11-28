@@ -12,7 +12,8 @@ from storage import Storage
 class IngredientListEditor(ft.UserControl):
     """Item list and quantity editor."""
 
-    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None, is_inputpart: bool = False):
+    def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None,
+                 is_inputpart: bool = False):
         super().__init__()
         self.is_inputpart = is_inputpart
         self.maincontrol = None
@@ -26,13 +27,13 @@ class IngredientListEditor(ft.UserControl):
         self.controls = []
         self.resource_type = resource_type
 
-    def get_searchitem(self, obj,key:str=None) -> ft.Control:
+    def get_searchitem(self, obj, key: str = None) -> ft.Control:
         if Frontend.singleton_frontend is None:
             return ft.Text('Frontend.singleton_frontend is None')
         if obj is None:
             return ft.Text('get_searchitem(None)')
         print(f'get_searchitem({obj})')
-        return Frontend.singleton_frontend.get_searchresultitem(obj,key=key)
+        return Frontend.singleton_frontend.get_searchresultitem(obj, key=key)
 
     def click_remove(self, event):
         key = event.control.data['key']
@@ -51,14 +52,16 @@ class IngredientListEditor(ft.UserControl):
 
     def set_amount(self, event):
         key = event.control.data['key']
-        self.items[key] = event.control.value
+        value = self.int_or_float_from_string(event.control.value)
+        event.control.value = str(value)
+        self.items[key] = value
         self.maincontrol.update()
 
     def build(self):
         self.controls = [ft.Text(self.label, color=self.color, style=ft.TextThemeStyle.LABEL_LARGE)]
         for k, v in self.items.items():
             item = self.storage.get_resource_by_type_and_key(res_type=self.resource_type, key=k)
-            search_item = self.get_searchitem(item,k)
+            search_item = self.get_searchitem(item, k)
             if search_item is None:
                 search_item = ft.Text(f'Unknown: {k}', style=ft.TextThemeStyle.LABEL_LARGE, selectable=True)
             item_ctrl = ft.Row(data={'key': k, 'value': v},
@@ -68,7 +71,8 @@ class IngredientListEditor(ft.UserControl):
                                                       text_align=ft.TextAlign.RIGHT,
                                                       icon=ft.icons.SHOPPING_CART,
                                                       data={'key': k, 'value': v},
-                                                      on_change=self.set_amount),
+                                                      on_submit=self.set_amount,
+                                                      on_blur=self.set_amount),
                                          ft.Text(' x ', style=ft.TextThemeStyle.LABEL_SMALL),
                                          search_item,
                                          # ft.Text(k, style=ft.TextThemeStyle.LABEL_LARGE,selectable=True),
@@ -81,7 +85,7 @@ class IngredientListEditor(ft.UserControl):
         self.amount = ft.TextField(label='Amount',
                                    dense=True,
                                    text_align=ft.TextAlign.RIGHT,
-                                   on_change=self.update_add_button,
+                                   on_blur=self.update_add_button,
                                    on_submit=self.update_add_button,
                                    value='1',
                                    icon=ft.icons.NUMBERS)
@@ -114,17 +118,17 @@ class IngredientListEditor(ft.UserControl):
         drop.options = []
         for r in results:
             if r['key'] not in self.items:
-                drop.options.append(ft.dropdown.Option(r['key'], r['key']+' - '+r['value']))
+                drop.options.append(ft.dropdown.Option(r['key'], r['key'] + ' - ' + r['value']))
 
         if self.is_inputpart:
             stepx: Step
             for stepx in self.storage.cache_steps.data.values():
                 if stepx.outputparts is not None:
                     for partkey in stepx.outputparts.keys():
-                        partx: Part =self.storage.cache_parts.get_by_unique_key('key',partkey)
+                        partx: Part = self.storage.cache_parts.get_by_unique_key('key', partkey)
                         if partx.contains(txt):
-                            drop.options.append(ft.dropdown.Option(partx.key + '('+stepx.key+')',
-                                                                   partx.key + '('+stepx.key+') - ' + partx.name))
+                            drop.options.append(ft.dropdown.Option(partx.key + '(' + stepx.key + ')',
+                                                                   partx.key + '(' + stepx.key + ') - ' + partx.name))
         drop.update()
         self.update_add_button()
         self.maincontrol.update()
@@ -133,22 +137,35 @@ class IngredientListEditor(ft.UserControl):
         del event
         if self.addbutton is None:
             return
+        value = self.int_or_float_from_string(self.amount.value)
         if self.amount is None or self.drop is None:
             self.addbutton.disabled = True
         elif len(self.drop.options) == 0:
             self.addbutton.disabled = True
         elif self.drop.value is None:
             self.addbutton.disabled = True
-        elif float(self.amount.value.strip()) <= 0:
+        elif value <= 0:
             self.addbutton.disabled = True
         else:
             self.addbutton.disabled = False
+        self.amount.value = str(value)
+        self.amount.update()
         self.addbutton.update()
 
+    def int_or_float_from_string(self, s: str) -> int or float:
+        """Converts a string to float or int, whichever is appropriate."""
+        s = s.strip()
+        try:
+            v = float(s)
+            if v.is_integer():
+                return int(v)
+            return v
+        except ValueError:
+            return 0
 
     def click_add(self, event):
         del event
-        self.items[self.drop.value] = float(self.amount.value.strip())
+        self.items[self.drop.value] = self.int_or_float_from_string(self.amount.value)
         self.build()
         self.maincontrol.update()
 
@@ -158,5 +175,5 @@ class IngredientListEditor(ft.UserControl):
         k: str
         for k, v in items.items():
             if v.contains(txt):
-                results.append({'key':k,'value':v.name})
+                results.append({'key': k, 'value': v.name})
         return results

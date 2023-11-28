@@ -12,7 +12,6 @@ from stepeditordialog import StepEditorDialog
 from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 
-# TODO convert float amounts to int if possible
 # TODO try to embed svg in markdown
 # TODO add other steps outputs (with final/not final tags) to the input part dropdown options
 # TODO while embedded links work and contain pk, the click handlers do not use the pk, but the visible element on screen
