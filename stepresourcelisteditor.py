@@ -61,7 +61,7 @@ class StepResourceListEditor():
         self.mfgdocsapp.page.update()
 
     def parent_markdown_update(self):
-        self.mfgdocsapp.load_mainmarkdown(self.step.key)
+        self.mfgdocsapp.load_mainmarkdown_step(self.step.key)
 
     def parent_search_update(self):
         if self.mfgdocsapp.ctrl['panel_searchresults_container'].visible:

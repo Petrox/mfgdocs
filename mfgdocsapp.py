@@ -15,6 +15,26 @@ from view import ViewStep
 
 
 # TODO try to embed svg in markdown
+# TODO add parameters (    Step-by-step instructions for each stage of production. Include specifics such as temperatures, pressures, and timings.)
+#     packaging (    Details on how the finished product should be packaged. Instructions for shipping and handling.),
+#     safety (    Safety guidelines for workers. Emergency procedures. Personal protective equipment (PPE) requirements.)
+#     environment (    Information on how the manufacturing process affects the environment. Steps taken to minimize environmental impact.)
+#     quality assurance: testing methods, machine maintenance text, required documentation texts to steps
+#     compliance:     Information on compliance with industry standards and regulations. Certifications obtained for the product.
+#     Troubleshooting Guide: Common issues during manufacturing and their solutions. Troubleshooting steps for equipment malfunctions.
+#     Glossary: Definitions of terms used in the document.
+#     References: Links to external resources. Additional supporting documents, such as material safety data sheets (MSDS) or CAD drawings.
+#     Required signatures: everybody participating and the quality check / approval separately
+#     Required measurement data: eg temperature, pressure, humidity, weight, etc
+# TODO add markdown view for all resources
+# TODO add json view and editor for all steps with the exception that the KEY can not change
+# TODO add split action to the steps where the input and output parts and tools and other resources are all split and the step is duplicated with the same name and description
+# TODO create a "floating part view" where any part not mentioned in the steps but in the BOM is listed with a warning
+# TODO create a button to add a new step based on BOM data
+# TODO add revisioning info (date, version, author, etc) for every change
+# TODO add part specifications (eg dimensions, tolerances, material, etc) for part
+# TODO add header and footer info to all reports
+# TODO add git commit message for every change
 # TODO document start_after
 # TODO document start_after_start
 # TODO document inputparts dependency
@@ -72,16 +92,32 @@ class MFGDocsApp:
         self.renderdot = RenderDot(self)
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
+        self.ctrl['main_topbar'] = ft.Container(visible=False)
+        self.ctrl['main_leftbar'] = ft.Container(visible=False,rotate=90)
+        self.ctrl['main_rightbar'] = ft.Container(visible=False,rotate=270)
+        self.ctrl['main_bottombar'] = ft.Container(visible=False)
         self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,
                                                 expand=False,
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                                                 on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
+        self.ctrl['maincontent']=self.maincontent
+        #self.maincontent.content = ft.Column(expand=3,
+        #                                     scroll=ft.ScrollMode.ALWAYS,
+        #                                     controls=[self.ctrl['main_topbar'],
+        #                                               ft.Row(controls=[
+        #                                                   self.ctrl['main_leftbar'],
+        #                                                   self.ctrl['mainmarkdown'],
+        #                                                   self.ctrl['main_rightbar']],expand=True),
+        #                                               self.ctrl['main_bottombar']])
         self.maincontent.content = ft.Column(expand=3,
                                              scroll=ft.ScrollMode.ALWAYS,
-                                             controls=[  # stepeditorbuttons,
-                                                 self.ctrl['mainmarkdown']
+                                             controls=[
+                                                 self.ctrl['main_topbar'],
+                                                 self.ctrl['mainmarkdown'],
+                                                 self.ctrl['main_bottombar'],
                                              ])
+
         self.page.title = 'MFGDocs'
         self.page.theme_mode = ft.ThemeMode.DARK
         scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
@@ -105,13 +141,15 @@ class MFGDocsApp:
             visible=False,
             alignment=ft.alignment.top_center)
 
+        url_emojiexamples = 'https://awes0mem4n.github.io/emojis-github.html'
+        url_markdownsyntax = 'https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax'
         self.ctrl['emojihelp']: ft.IconButton = ft.IconButton(ft.icons.HELP,
                                                               on_click=lambda e: self.page.launch_url(
-                                                                  "https://awes0mem4n.github.io/emojis-github.html"),
+                                                                  url_emojiexamples),
                                                               tooltip='Emoji help')
         self.ctrl['markdownhelp']: ft.IconButton = ft.IconButton(ft.icons.HELP_CENTER,
                                                                  on_click=lambda e: self.page.launch_url(
-                                                                     "https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax"),
+                                                                     url_markdownsyntax),
                                                                  tooltip='Markdown help')
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
                       'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,
@@ -153,7 +191,7 @@ class MFGDocsApp:
         self.ctrl['layout'] = self.layout
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
-        self.load_mainmarkdown('STEP-0001')
+        self.load_mainmarkdown_step('STEP-0001')
 
     def markdown_link_tap(self, event):
         print(f'Link tapped: {event.data}')
@@ -166,6 +204,7 @@ class MFGDocsApp:
         self.ctrl['check_panel_searchresults'].value = True
         self.ctrl['check_panel_searchresults'].update()
         self.ctrl['panel_searchresults_container'].visible = True
+        self.ctrl['panel_searchresults_container'].width = 300
         self.ctrl['panel_searchresults_container'].update()
 
     def hide_searchresults(self, e):
@@ -191,7 +230,7 @@ class MFGDocsApp:
             if v.contains(self.ctrl['contains'].value):
                 results += 1
                 button = self.frontend.get_searchresultitem_step(k)
-                button.on_click = lambda e, key=k: self.load_mainmarkdown(key)
+                button.on_click = lambda e, key=k: self.load_mainmarkdown_step(key)
                 self.ctrl['panel_searchresults'].controls.append(button)
         if results == 0:
             self.ctrl['panel_searchresults'].controls.clear()
@@ -284,23 +323,78 @@ class MFGDocsApp:
         self.page.dialog.open = True
         self.page.update()
 
-    def load_mainmarkdown(self, key):
+    def load_mainmarkdown_step(self, key):
         self.visible_step_key = key
         step=self.storage.cache_steps.data[key]
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(step)
         #print(f'load_mainmarkdown {key}')
+        top_controls = []
+        self.prepare_top_dependency_buttons(top_controls, step)
+        self.ctrl['main_topbar'].content = ft.Row(controls=top_controls)
+        self.ctrl['main_topbar'].visible = True
+        bottom_controls = []
+        self.prepare_bottom_dependency_buttons(bottom_controls, step)
+        self.ctrl['main_bottombar'].content = ft.Row(controls=bottom_controls)
+        self.ctrl['main_bottombar'].visible = True
+        #self.ctrl['main_bottombar'].content = ft.Text(f'{ViewStep.find_steps_depending_on_this(step, self.storage)}')
+        #self.ctrl['main_leftbar'].content = ft.Text(f'{ViewStep.find_steps_after_start_with_this(step, self.storage)}')
+        #self.ctrl['main_rightbar'].content = ft.Text(f'{ViewStep.find_steps_which_start_after_this_starts(step, self.storage)}')
+        #self.ctrl['main_bottombar'].visible = True
+        #self.ctrl['main_leftbar'].visible = True
+        #self.ctrl['main_rightbar'].visible = True
         #print(f'ViewStep.find_steps_this_depends_on {ViewStep.find_steps_this_depends_on(step, self.storage)}')
         #print(f'ViewStep.find_steps_depending_on_this {ViewStep.find_steps_depending_on_this(step, self.storage)}')
         #print(f'ViewStep.find_steps_after_start_with_this {ViewStep.find_steps_after_start_with_this(step, self.storage)}')
         #print(f'ViewStep.find_steps_which_start_after_this_starts {ViewStep.find_steps_which_start_after_this_starts(step, self.storage)}')
-        self.ctrl['mainmarkdown'].update()
+        #self.ctrl['mainmarkdown'].update()
+        self.ctrl['maincontent'].update()
+
+    def prepare_bottom_dependency_buttons(self, control_list, step):
+        start_after_start_controls = []
+        start_after_finish = ViewStep.find_steps_depending_on_this(step, self.storage)
+        start_after_finish = dict(sorted(start_after_finish.items()))
+
+        start_after_start = ViewStep.find_steps_which_start_after_this_starts(step, self.storage)
+        start_after_start = dict(sorted(start_after_start.items()))
+
+        if len(start_after_finish) > 0:
+            control_list.append(ft.Text(f'These must wait until {step.key} is done:'))
+            for k in start_after_finish:
+                control_list.append(
+                    ft.ElevatedButton(f'{k}', on_click=lambda e, key=k: self.load_mainmarkdown_step(key)))
+        for k in start_after_start:
+            if k not in start_after_finish:
+                start_after_start_controls.append(
+                    ft.ElevatedButton(f'{k}', on_click=lambda e, key=k: self.load_mainmarkdown_step(key)))
+        if len(start_after_start_controls) > 0:
+            control_list.append(ft.Text(f'These can start in parallel after {step.key} starts:'))
+            control_list.extend(start_after_start_controls)
+
+    def prepare_top_dependency_buttons(self, control_list, step):
+        start_after_start_controls = []
+        start_after_start = ViewStep.find_steps_after_start_with_this(step, self.storage)
+        start_after_start = dict(sorted(start_after_start.items()))
+        start_after_finish = ViewStep.find_steps_this_depends_on(step, self.storage)
+        start_after_finish = dict(sorted(start_after_finish.items()))
+        if len(start_after_finish) > 0:
+            control_list.append(ft.Text(f'{step.key} can start after these are all finished:'))
+            for k in start_after_finish:
+                control_list.append(
+                    ft.ElevatedButton(f'{k}', on_click=lambda e, key=k: self.load_mainmarkdown_step(key)))
+        for k in start_after_start:
+            if k not in start_after_finish:
+                start_after_start_controls.append(
+                    ft.ElevatedButton(f'{k}', on_click=lambda e, key=k: self.load_mainmarkdown_step(key)))
+        if len(start_after_start_controls) > 0:
+            control_list.append(ft.Text(f'{step.key} can start together with these:'))
+            control_list.extend(start_after_start_controls)
 
     def click_refresh(self, e):
         del e  # unused
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
         self.storage.load_resources()
-        self.load_mainmarkdown(self.visible_step_key)
+        self.load_mainmarkdown_step(self.visible_step_key)
         # self.renderdot.render_bom_to_file()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
