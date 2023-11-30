@@ -20,4 +20,5 @@ ft.app(target=main,
        assets_dir="assets",
        upload_dir="assets/uploads",
        view=ft.AppView.WEB_BROWSER,
+       use_color_emoji=True,
        port=8080)
