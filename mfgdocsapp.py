@@ -1,6 +1,7 @@
 """Creates and manages the main UI of the application itself.
 
 """
+import base64
 from datetime import datetime
 import flet as ft
 from config import Config
@@ -13,8 +14,7 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
-
-# TODO try to embed svg in markdown
+# TODO add feature to group the inputlist of a step if the same part is not used by multiple times
 # TODO add parameters (    Step-by-step instructions for each stage of production. Include specifics such as temperatures, pressures, and timings.)
 #     packaging (    Details on how the finished product should be packaged. Instructions for shipping and handling.),
 #     safety (    Safety guidelines for workers. Emergency procedures. Personal protective equipment (PPE) requirements.)
@@ -29,7 +29,7 @@ from view import ViewStep
 # TODO add markdown view for all resources
 # TODO add json view and editor for all steps with the exception that the KEY can not change
 # TODO add split action to the steps where the input and output parts and tools and other resources are all split and the step is duplicated with the same name and description
-# TODO create a "floating part view" where any part not mentioned in the steps but in the BOM is listed with a warning
+# TODO create a "unassociated part view" where any part not mentioned in the steps but in the BOM is listed with a warning
 # TODO create a button to add a new step based on BOM data
 # TODO add revisioning info (date, version, author, etc) for every change
 # TODO add part specifications (eg dimensions, tolerances, material, etc) for part
@@ -84,7 +84,7 @@ class MFGDocsApp:
     def __init__(self, page):
         self.editor_dialog = None
         self.page = page
-        self.page.views[0].scroll = ft.ScrollMode.ADAPTIVE
+        self.configure_page()
         self.visible_step_key = None
         self.frontend = Frontend(self)
         self.ctrl = {}
@@ -93,23 +93,13 @@ class MFGDocsApp:
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
         self.ctrl['main_topbar'] = ft.Container(visible=False)
-        self.ctrl['main_leftbar'] = ft.Container(visible=False,rotate=90)
-        self.ctrl['main_rightbar'] = ft.Container(visible=False,rotate=270)
         self.ctrl['main_bottombar'] = ft.Container(visible=False)
         self.ctrl['mainmarkdown'] = ft.Markdown(selectable=True,
                                                 expand=False,
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                                                 on_tap_link=self.markdown_link_tap)
         self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
-        self.ctrl['maincontent']=self.maincontent
-        #self.maincontent.content = ft.Column(expand=3,
-        #                                     scroll=ft.ScrollMode.ALWAYS,
-        #                                     controls=[self.ctrl['main_topbar'],
-        #                                               ft.Row(controls=[
-        #                                                   self.ctrl['main_leftbar'],
-        #                                                   self.ctrl['mainmarkdown'],
-        #                                                   self.ctrl['main_rightbar']],expand=True),
-        #                                               self.ctrl['main_bottombar']])
+        self.ctrl['maincontent'] = self.maincontent
         self.maincontent.content = ft.Column(expand=3,
                                              scroll=ft.ScrollMode.ALWAYS,
                                              controls=[
@@ -118,18 +108,10 @@ class MFGDocsApp:
                                                  self.ctrl['main_bottombar'],
                                              ])
 
-        self.page.title = 'MFGDocs'
-        self.page.theme_mode = ft.ThemeMode.DARK
-        scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
-                                            interactive=True)
-        self.page.theme = ft.theme.Theme(color_scheme_seed='blue',
-                                         scrollbar_theme=scrollbar,
-                                         visual_density=ft.ThemeVisualDensity.COMPACT,
-                                         font_family='Roboto')
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
                                              filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
         self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')], visible=False)
-        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')],expand=True)
+        self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')], expand=True)
         self.ctrl['panel_searchresults_container'] = ft.Container(
             self.ctrl['panel_searchresults'],
             expand=True,
@@ -143,6 +125,7 @@ class MFGDocsApp:
 
         url_emojiexamples = 'https://awes0mem4n.github.io/emojis-github.html'
         url_markdownsyntax = 'https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax'
+
         self.ctrl['emojihelp']: ft.IconButton = ft.IconButton(ft.icons.HELP,
                                                               on_click=lambda e: self.page.launch_url(
                                                                   url_emojiexamples),
@@ -151,6 +134,11 @@ class MFGDocsApp:
                                                                  on_click=lambda e: self.page.launch_url(
                                                                      url_markdownsyntax),
                                                                  tooltip='Markdown help')
+
+        self.ctrl['overview_button']: ft.IconButton = ft.IconButton(ft.icons.MAP,
+                                                                    on_click=self.click_overview,
+                                                                    tooltip='Overview')
+
         self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
                       'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,
                                               tooltip='Reload datafiles'),
@@ -161,7 +149,8 @@ class MFGDocsApp:
             title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
             center_title=False,  # we center the title
             bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['markdownhelp'], self.ctrl['emojihelp'], self.ctrl['contains'],
+            actions=[self.ctrl['overview_button'], self.ctrl['markdownhelp'], self.ctrl['emojihelp'],
+                     self.ctrl['contains'],
                      self.ctrl['progressring'],
                      self.ctrl['reload'], self.ctrl['feedback']]
         )
@@ -192,6 +181,26 @@ class MFGDocsApp:
         self.page.controls.append(ft.Column(controls=[self.ctrl['toolbar'], self.layout, self.ctrl['footer']]))
         self.page.update()
         self.load_mainmarkdown_step('STEP-0001')
+
+    def click_overview(self, event):
+        del event
+        self.ctrl['progressring'].visible = True
+        self.ctrl['progressring'].update()
+        self.renderdot.render_steps_to_file()
+        self.ctrl['progressring'].visible = False
+        self.ctrl['progressring'].update()
+        self.display_overview()
+
+    def configure_page(self):
+        self.page.title = 'MFGDocs'
+        self.page.theme_mode = ft.ThemeMode.DARK
+        scrollbar = ft.theme.ScrollbarTheme(thumb_visibility=True, thickness=10, track_visibility=True,
+                                            interactive=True)
+        self.page.theme = ft.theme.Theme(color_scheme_seed='blue',
+                                         scrollbar_theme=scrollbar,
+                                         visual_density=ft.ThemeVisualDensity.COMPACT,
+                                         font_family='Roboto')
+        self.page.views[0].scroll = ft.ScrollMode.ADAPTIVE
 
     def markdown_link_tap(self, event):
         print(f'Link tapped: {event.data}')
@@ -325,9 +334,8 @@ class MFGDocsApp:
 
     def load_mainmarkdown_step(self, key):
         self.visible_step_key = key
-        step=self.storage.cache_steps.data[key]
+        step = self.storage.cache_steps.data[key]
         self.ctrl['mainmarkdown'].value = self.rendermarkdown.render_step(step)
-        #print(f'load_mainmarkdown {key}')
         top_controls = []
         self.prepare_top_dependency_buttons(top_controls, step)
         self.ctrl['main_topbar'].content = ft.Row(controls=top_controls)
@@ -336,17 +344,6 @@ class MFGDocsApp:
         self.prepare_bottom_dependency_buttons(bottom_controls, step)
         self.ctrl['main_bottombar'].content = ft.Row(controls=bottom_controls)
         self.ctrl['main_bottombar'].visible = True
-        #self.ctrl['main_bottombar'].content = ft.Text(f'{ViewStep.find_steps_depending_on_this(step, self.storage)}')
-        #self.ctrl['main_leftbar'].content = ft.Text(f'{ViewStep.find_steps_after_start_with_this(step, self.storage)}')
-        #self.ctrl['main_rightbar'].content = ft.Text(f'{ViewStep.find_steps_which_start_after_this_starts(step, self.storage)}')
-        #self.ctrl['main_bottombar'].visible = True
-        #self.ctrl['main_leftbar'].visible = True
-        #self.ctrl['main_rightbar'].visible = True
-        #print(f'ViewStep.find_steps_this_depends_on {ViewStep.find_steps_this_depends_on(step, self.storage)}')
-        #print(f'ViewStep.find_steps_depending_on_this {ViewStep.find_steps_depending_on_this(step, self.storage)}')
-        #print(f'ViewStep.find_steps_after_start_with_this {ViewStep.find_steps_after_start_with_this(step, self.storage)}')
-        #print(f'ViewStep.find_steps_which_start_after_this_starts {ViewStep.find_steps_which_start_after_this_starts(step, self.storage)}')
-        #self.ctrl['mainmarkdown'].update()
         self.ctrl['maincontent'].update()
 
     def prepare_bottom_dependency_buttons(self, control_list, step):
@@ -454,3 +451,41 @@ class MFGDocsApp:
             self.click_step_edit_start_after_start(None)
         else:
             print(f'Unknown action: {action}')
+
+    def display_overview(self):
+        ts = datetime.now().timestamp()
+        # image_src=f'generated/overview.dot.png?ts={ts}'
+        # image_src=f'generated/overview.dot.png'
+        # print(f'Image url: {image_src}')
+        dlg = ft.AlertDialog(visible=True,
+                             open=True,
+                             modal=False,
+                             title=ft.Text('Overview'),
+                             on_dismiss=self.clear_overview_image)
+        # dlg.actions = [ft.ElevatedButton('Close', on_click=self.close_dialog)]
+        file_name = 'assets/generated/overview.dot.png'
+        with open(file_name, mode='rb') as file:
+            file_content = file.read()
+        image_src = base64.b64encode(file_content).decode("utf-8")
+        self.ctrl['overview_image'] = ft.Image(src_base64=image_src, width=900, expand=True)
+        dlg.content = ft.Container(
+            content=ft.Column([self.ctrl['overview_image']])
+        )
+        self.page.dialog = dlg
+        self.page.update()
+        self.ctrl['overview_image'].update()
+
+    def clear_overview_image(self, e):
+        del e
+        self.ctrl['overview_image'].src = ''
+        # self.ctrl['overview_image'].update()
+        self.ctrl['overview_image'] = None
+
+    def close_dialog(self, e):
+        del e
+        self.page.dialog.visible = False
+        self.page.dialog.open = False
+        self.page.dialog.update()
+        self.page.update()
+        print('Closing dialog')
+        print(f'Visible: {self.page.dialog.visible}')
