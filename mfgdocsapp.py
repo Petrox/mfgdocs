@@ -5,7 +5,7 @@ import base64
 from datetime import datetime
 import flet as ft
 from config import Config
-from frontend import Frontend
+from frontend import Frontend, Overview
 from model import Step
 from renderdot import RenderDot
 from rendermarkdown import RenderMarkdown
@@ -14,6 +14,11 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
+# TODO add pan to overview
+# TODO add zoom to overview
+# TODO list all products that are built but have no steps to produce them so, one could add a step
+# TODO list all bomitems that are not used in any step
+# TODO list all parts that are bought but not used in any boms
 # TODO add feature to group the inputlist of a step if the same part is not used by multiple times
 # TODO add parameters (    Step-by-step instructions for each stage of production. Include specifics such as temperatures, pressures, and timings.)
 #     packaging (    Details on how the finished product should be packaged. Instructions for shipping and handling.),
@@ -85,6 +90,7 @@ class MFGDocsApp:
         self.frontend = Frontend(self)
         self.ctrl = {}
         self.storage = Storage(self)
+        self.overview = Overview(self)
         self.renderdot = RenderDot(self)
         self.rendermarkdown = RenderMarkdown(self)
         self.long_process_depth = 0
@@ -449,39 +455,9 @@ class MFGDocsApp:
             print(f'Unknown action: {action}')
 
     def display_overview(self):
-        ts = datetime.now().timestamp()
-        # image_src=f'generated/overview.dot.png?ts={ts}'
-        # image_src=f'generated/overview.dot.png'
-        # print(f'Image url: {image_src}')
-        dlg = ft.AlertDialog(visible=True,
-                             open=True,
-                             modal=False,
-                             title=ft.Text('Overview'),
-                             on_dismiss=self.clear_overview_image)
-        # dlg.actions = [ft.ElevatedButton('Close', on_click=self.close_dialog)]
-        file_name = 'assets/generated/overview.dot.png'
-        with open(file_name, mode='rb') as file:
-            file_content = file.read()
-        image_src = base64.b64encode(file_content).decode("utf-8")
-        self.ctrl['overview_image'] = ft.Image(src_base64=image_src, width=900, expand=True)
-        dlg.content = ft.Container(
-            content=ft.Column([self.ctrl['overview_image']])
-        )
-        self.page.dialog = dlg
+        self.page.dialog = self.overview.get_overview_dialog()
+        self.page.dialog.visible = True
         self.page.update()
         self.ctrl['overview_image'].update()
-
-    def clear_overview_image(self, e):
-        del e
-        self.ctrl['overview_image'].src = ''
-        # self.ctrl['overview_image'].update()
-        self.ctrl['overview_image'] = None
-
-    def close_dialog(self, e):
-        del e
-        self.page.dialog.visible = False
-        self.page.dialog.open = False
         self.page.dialog.update()
-        self.page.update()
-        print('Closing dialog')
-        print(f'Visible: {self.page.dialog.visible}')
+

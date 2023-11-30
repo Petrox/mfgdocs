@@ -1,4 +1,6 @@
 """Handles UI element representations"""
+import base64
+
 import flet as ft
 from model import Part, Step, Action, Tool, Machine, Consumable, Role
 
@@ -102,3 +104,31 @@ class Frontend:
         c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.MAN),
                                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
         return c
+
+
+class Overview:
+
+    def __init__(self, mfgdocsapp: 'MFGDocsApp'):
+        self.mfgdocsapp = mfgdocsapp
+        self.storage = mfgdocsapp.storage
+        self.ctrl = mfgdocsapp.ctrl
+
+    def get_overview_dialog(self, file_name='assets/generated/overview.dot.png'):
+        dlg = ft.AlertDialog(visible=True,
+                             open=True,
+                             modal=False,
+                             title=ft.Text('Overview'),
+                             on_dismiss=self.clear_overview_image)
+        with open(file_name, mode='rb') as file:
+            file_content = file.read()
+        image_src = base64.b64encode(file_content).decode('utf-8')
+        self.ctrl['overview_image'] = ft.Image(src_base64=image_src, width=900, expand=True)
+        dlg.content = ft.Container(
+            content=ft.Column([ft.Text('aaa'), self.ctrl['overview_image']])
+        )
+        return dlg
+
+    def clear_overview_image(self, e):
+        del e
+        self.ctrl['overview_image'].src = ''
+        self.ctrl['overview_image'] = None
