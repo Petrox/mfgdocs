@@ -158,6 +158,7 @@ class Step(Resource):
         self.final = False
         self.start_after = {}
         self.start_after_start = {}
+        self.unit_time_hours = 0
         self.prepare_hours = 0
         self.cooldown_hours = 0
 
@@ -179,8 +180,9 @@ class Step(Resource):
         self.cleanup_text = d.get('cleanup_text', '')
         self.start_after = d.get('start_after', {})
         self.start_after_start = d.get('start_after_start', {})
-        self.prepare_hours = d.get('prepare_time', 0)
-        self.cooldown_hours = d.get('cooldown_time', 0)
+        self.unit_time_hours = d.get('unit_time_hours', 0)
+        self.prepare_hours = d.get('prepare_hours', 0)
+        self.cooldown_hours = d.get('cooldown_hours', 0)
 
     def to_dict(self):
         return super().to_dict() | {
@@ -196,9 +198,11 @@ class Step(Resource):
             'prepare_text': self.prepare_text,
             'cleanup_text': self.cleanup_text,
             'company': self.company,
+            'location': self.location,
             'acceptance': self.acceptance,
             'start_after': self.start_after,
             'start_after_start': self.start_after_start,
+            'unit_time_hours': self.unit_time_hours,
             'prepare_hours': self.prepare_hours,
             'cooldown_hours': self.cooldown_hours}
 

@@ -51,11 +51,7 @@ from view import ViewStep
 # TODO markdown helpers for steps: warnings, errors, info, questionmark, checkmark, images etc
 # TODO circular dependency detection (do we need it? maybe not)
 # TODO optional Support decision points (Yes-No or multiple outcome) in the process and tag the output accordingly
-# TODO display all uplink steps and parts
-# TODO display all downwind steps and parts
-# TODO display all parallel processes
 # TODO maybe display and edit ALL steps in one markdown? Can we scroll to specific point?
-# TODO display the process as a flowchart
 # TODO display the process as a Gantt chart
 # TODO display the process as a Kanban board
 # TODO display the process as a calendar

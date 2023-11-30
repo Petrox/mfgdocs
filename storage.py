@@ -27,7 +27,7 @@ class Storage:
         self.mfgdocsapp = mfgdocsapp
         self.load_resources()
 
-    def cache_by_resource_type(self,resource_type):
+    def cache_by_resource_type(self, resource_type):
         cache_map = {
             'actions': self.cache_actions,
             'roles': self.cache_roles,
@@ -42,6 +42,7 @@ class Storage:
         if resource_type in cache_map:
             return cache_map[resource_type]
         return None
+
     def get_resource_by_type_and_key(self, res_type: str, key: str):
         print(f'storage.get_resource_by_type_and_key({res_type}, {key})')
 
@@ -75,6 +76,17 @@ class Storage:
         self.load_json(self.cache_companies, '/data/companies.json', Company)
         self.load_json(self.cache_steps, '/data/steps.json', Step)
 
+    def save_resources(self):
+        self.save_json(self.cache_roles.data, '/data/roles.json')
+        self.save_json(self.cache_tools.data, '/data/tools.json')
+        self.save_json(self.cache_actions.data, '/data/actions.json')
+        self.save_json(self.cache_parts.data, '/data/parts.json')
+        self.save_json(self.cache_locations.data, '/data/locations.json')
+        self.save_json(self.cache_machines.data, '/data/machines.json')
+        self.save_json(self.cache_consumables.data, '/data/consumables.json')
+        self.save_json(self.cache_companies.data, '/data/companies.json')
+        self.save_json(self.cache_steps.data, '/data/steps.json')
+
     def load_json(self, cache, filename, classname, no_clear_before_load=False):
         if not no_clear_before_load:
             cache.clear()
@@ -89,3 +101,14 @@ class Storage:
                     cache.add(key, item, extrakeys)
         except OSError as e:
             self.mfgdocsapp.log(f'storage.load_json error: {e}')
+
+    def save_json(self, data: dict, filename: str):
+        f_name = Config.workdir + filename.replace('/', os.sep)
+        fulldict = {}
+        for k, v in data.items():
+            fulldict[k] = v.to_dict()
+        try:
+            with open(f_name, mode='wt', encoding='utf-8') as json_file:
+                json.dump(fulldict, json_file, indent=4, sort_keys=True)
+        except OSError as e:
+            self.mfgdocsapp.log(f'storage.save_json error: {e}')

@@ -30,7 +30,7 @@ class RenderMarkdown:
         s = self.mfgdocsapp.storage
         md = f'''
 # {step.key} {step.name} [:pencil2:](click://step_edit/{step.pk})
- - :busts_in_silhouette: {self.lookup_single_item(step.company, s.cache_companies.data)} :round_pushpin: {self.lookup_single_item(step.location, s.cache_locations.data)} :clock1: {step.prepare_hours} :clock2: {step.cooldown_hours}
+ - :busts_in_silhouette: {self.lookup_single_item(step.company, s.cache_companies.data)} :round_pushpin: {self.lookup_single_item(step.location, s.cache_locations.data)} :clock1: {step.unit_time_hours} :clock2: {step.prepare_hours} :clock3: {step.cooldown_hours}
 | Input [:pencil2:](click://step_edit_inputparts/{step.pk})| Output [:pencil2:](click://step_edit_outputparts/{step.pk})| Roles [:pencil2:](click://step_edit_roles/{step.pk})| Actions [:pencil2:](click://step_edit_actions/{step.pk})| Machines [:pencil2:](click://step_edit_machines/{step.pk})| Tools [:pencil2:](click://step_edit_tools/{step.pk})| Consumables [:pencil2:](click://step_edit_consumables/{step.pk})|
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 {self.multitable(step,step.inputparts, s.cache_parts.data,
