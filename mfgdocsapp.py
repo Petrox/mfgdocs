@@ -9,12 +9,13 @@ from frontend import Frontend, Overview
 from model import Step
 from renderdot import RenderDot
 from rendermarkdown import RenderMarkdown
+from size_aware_control import SizeAwareControl
 from stepeditordialog import StepEditorDialog
 from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
-# TODO make overview pan and zoom work a bit more nicely
+# TODO remove all prints and use logging instead
 # TODO add click handler to overview
 # TODO add dangling outputs to a list that could be added to the input of a step
 # TODO list all products that are built but have no steps to produce them so, one could add a step
@@ -101,15 +102,18 @@ class MFGDocsApp:
                                                 expand=False,
                                                 extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
                                                 on_tap_link=self.markdown_link_tap)
-        self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
+        # self.maincontent = ft.Container(bgcolor=ft.colors.ON_SECONDARY, expand=True)
+        self.maincontent = SizeAwareControl(expand=True)
         self.ctrl['maincontent'] = self.maincontent
-        self.maincontent.content = ft.Column(expand=3,
-                                             scroll=ft.ScrollMode.ALWAYS,
-                                             controls=[
-                                                 self.ctrl['main_topbar'],
-                                                 self.ctrl['mainmarkdown'],
-                                                 self.ctrl['main_bottombar'],
-                                             ])
+        self.maincontent.content = ft.Container(bgcolor=ft.colors.ON_SECONDARY,
+                                                expand=True,
+                                                content=ft.Column(expand=3,
+                                                                  scroll=ft.ScrollMode.ALWAYS,
+                                                                  controls=[
+                                                                      self.ctrl['main_topbar'],
+                                                                      self.ctrl['mainmarkdown'],
+                                                                      self.ctrl['main_bottombar'],
+                                                                  ]))
 
         self.ctrl['contains'] = ft.TextField(label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
                                              filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search)
@@ -459,6 +463,3 @@ class MFGDocsApp:
         self.page.dialog = self.overview.get_overview_dialog()
         self.page.dialog.visible = True
         self.page.update()
-        self.ctrl['overview_image'].update()
-        self.page.dialog.update()
-

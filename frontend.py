@@ -1,7 +1,8 @@
 """Handles UI element representations"""
 import base64
-
+from size_aware_control import SizeAwareControl
 import flet as ft
+from PIL import Image
 from model import Part, Step, Action, Tool, Machine, Consumable, Role
 
 
@@ -109,9 +110,19 @@ class Frontend:
 class Overview:
 
     def __init__(self, mfgdocsapp: 'MFGDocsApp'):
+        self.viewport_height = None
+        self.viewport_width = None
+        self.scale = 1.0
+        self.previous_scale = 1.0
+        self.zoom_x = None
+        self.zoom_y = None
+        self.offset_x = 0
+        self.offset_y = 0
         self.mfgdocsapp = mfgdocsapp
         self.storage = mfgdocsapp.storage
         self.ctrl = mfgdocsapp.ctrl
+        self.image_width = 1
+        self.image_height = 1
 
     def get_overview_dialog(self, file_name='assets/generated/overview.dot.png'):
         dlg = ft.AlertDialog(visible=True,
@@ -119,34 +130,115 @@ class Overview:
                              modal=False,
                              title=ft.Text('Overview'),
                              on_dismiss=self.clear_overview_image)
+
+        self.image_width, self.image_height = self.get_image_size(file_name)
+        self.scale = 1.0
         with open(file_name, mode='rb') as file:
             file_content = file.read()
         image_src = base64.b64encode(file_content).decode('utf-8')
         self.ctrl['overview_image'] = ft.Image(src_base64=image_src, expand=True)
+        self.ctrl['overview_image_background'] = ft.Container(height=self.image_height * 2,
+                                                              width=self.image_width * 2,
+                                                              bgcolor='green',
+                                                              content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,
+                                                                                controls=[
+                                                                                    ft.Row(controls=[
+                                                                                        self.ctrl['overview_image']],
+                                                                                        alignment=ft.MainAxisAlignment.CENTER)])
+                                                              )
         self.ctrl['overview_image_stack'] = ft.Stack(
-            controls=[ft.Column([self.ctrl['overview_image']]),
-                      ft.GestureDetector(on_pan_update=self.on_pan_update,on_scroll=self.on_scroll_update)],
+            controls=[ft.Container(content=self.ctrl['overview_image_background']),
+                      ft.GestureDetector(on_pan_update=self.on_pan_update, on_scroll=self.on_scroll_update)],
             left=0, top=0, width=3000, height=3000)
-        dlg.content = ft.Container(content=ft.Stack(controls=[self.ctrl['overview_image_stack']],
-                                                    width=3000,
-                                                    height=3000))
+        dlg.content = SizeAwareControl(content=ft.Stack(controls=[self.ctrl['overview_image_stack']]),
+                                       on_resize=self.content_resize,
+                                       width=2000)
         return dlg
+
+    def reset_image_position(self):
+        self.scale = None
+        self.update_image_position()
+
+    def update_image_position(self):
+
+        viewport_ratio = self.viewport_width / self.viewport_height
+        image_ratio = self.image_width / self.image_height
+        # we want to pad the image with a border so that the resulting object has the same ratio as the viewport
+        if viewport_ratio > image_ratio:
+            # viewport is wider than image, so we pad the image with a border on the left and right
+            border_x = (self.image_height * viewport_ratio) - self.image_width
+            border_y = 0
+        else:
+            border_y = (self.image_width / viewport_ratio) - self.image_height
+            border_x = 0
+        minscale = self.viewport_width / (self.image_width + border_x)
+        if self.scale is None:
+            self.scale = minscale
+        self.scale = self.clamp(self.scale, minscale, 30)
+
+        stack_width = (self.image_width + border_x) * self.scale
+        stack_height = (self.image_height + border_y) * self.scale
+        stack_overflow_x = stack_width - self.viewport_width
+        stack_overflow_y = stack_height - self.viewport_height
+
+        if self.scale != self.previous_scale:
+            if self.zoom_x is not None and self.ctrl['overview_image_stack'].width is not None:
+                prevstack_width = (self.image_width + border_x) * self.previous_scale
+                prevstack_height = (self.image_height + border_y) * self.previous_scale
+                size_delta_x = stack_width - prevstack_width
+                size_delta_y = stack_height - prevstack_height
+                of_x = size_delta_x * (self.zoom_x / self.ctrl['overview_image_stack'].width)
+                of_y = size_delta_y * (self.zoom_y / self.ctrl['overview_image_stack'].height)
+                self.offset_x -= of_x
+                self.offset_y -= of_y
+            self.previous_scale = self.scale
+
+        # print(f"borderratio: {(self.image_width + border_x) / (self.image_height + border_y):.2f} == {viewport_ratio:.2f}")
+        # print(f"border: {self.image_width}+{border_x} == {self.viewport_width}     and  {self.image_height}+{border_y} == {self.viewport_height}")
+        self.offset_x = self.clamp(self.offset_x, -stack_overflow_x, 0)
+        self.offset_y = self.clamp(self.offset_y, -stack_overflow_y, 0)
+        self.ctrl['overview_image_stack'].width = stack_width
+        self.ctrl['overview_image_stack'].height = stack_height
+        self.ctrl['overview_image'].width = self.image_width * self.scale
+        self.ctrl['overview_image'].height = self.image_height * self.scale
+        self.ctrl['overview_image_stack'].left = self.offset_x
+        self.ctrl['overview_image_stack'].top = self.offset_y
+        self.ctrl['overview_image_stack'].update()
+
+    def content_resize(self, event: ft.canvas.CanvasResizeEvent):
+        print(f"content resize: {event.width} {event.height}")
+        self.viewport_width = event.width
+        self.viewport_height = event.height
+        self.reset_image_position()
+
+    def get_image_size(self, file_name: str):
+        """Opens the file and returns the image size using PIL"""
+        im = Image.open(file_name)
+        return im.size
 
     def on_pan_update(self, event: ft.DragUpdateEvent):
         print(f"pan update: {self.ctrl['overview_image_stack'].top} {event.delta_x}, {event.delta_y}")
-        self.ctrl['overview_image_stack'].top += event.delta_y
-        self.ctrl['overview_image_stack'].left += event.delta_x
-        self.ctrl['overview_image_stack'].update()
+        self.offset_x += event.delta_x
+        self.offset_y += event.delta_y
+        self.update_image_position()
 
     def on_scroll_update(self, event: ft.ScrollEvent):
-        print(f'scroll update: {self.ctrl['overview_image_stack'].width} {event.scroll_delta_y}, {event.scroll_delta_y}')
-        self.ctrl['overview_image_stack'].top -= event.scroll_delta_y/2
-        self.ctrl['overview_image_stack'].left -= event.scroll_delta_y/2
-        self.ctrl['overview_image_stack'].width += event.scroll_delta_y
-        self.ctrl['overview_image_stack'].height += event.scroll_delta_y
-        self.ctrl['overview_image_stack'].update()
+
+        self.scale = self.scale - event.scroll_delta_y * 0.0001
+        self.zoom_x = event.local_x
+        self.zoom_y = event.local_y
+        print(
+            f'scroll update: {self.ctrl['overview_image_stack'].width} {event.scroll_delta_y} {self.scale}')
+        self.update_image_position()
 
     def clear_overview_image(self, e):
         del e
         self.ctrl['overview_image'].src = ''
         self.ctrl['overview_image'] = None
+
+    def clamp(self, value: float, min: float, max: float) -> float:
+        if value < min:
+            return min
+        if value > max:
+            return max
+        return value
