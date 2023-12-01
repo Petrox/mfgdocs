@@ -14,8 +14,9 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
-# TODO add pan to overview
-# TODO add zoom to overview
+# TODO make overview pan and zoom work a bit more nicely
+# TODO add click handler to overview
+# TODO add dangling outputs to a list that could be added to the input of a step
 # TODO list all products that are built but have no steps to produce them so, one could add a step
 # TODO list all bomitems that are not used in any step
 # TODO list all parts that are bought but not used in any boms

@@ -122,11 +122,29 @@ class Overview:
         with open(file_name, mode='rb') as file:
             file_content = file.read()
         image_src = base64.b64encode(file_content).decode('utf-8')
-        self.ctrl['overview_image'] = ft.Image(src_base64=image_src, width=900, expand=True)
-        dlg.content = ft.Container(
-            content=ft.Column([ft.Text('aaa'), self.ctrl['overview_image']])
-        )
+        self.ctrl['overview_image'] = ft.Image(src_base64=image_src, expand=True)
+        self.ctrl['overview_image_stack'] = ft.Stack(
+            controls=[ft.Column([self.ctrl['overview_image']]),
+                      ft.GestureDetector(on_pan_update=self.on_pan_update,on_scroll=self.on_scroll_update)],
+            left=0, top=0, width=3000, height=3000)
+        dlg.content = ft.Container(content=ft.Stack(controls=[self.ctrl['overview_image_stack']],
+                                                    width=3000,
+                                                    height=3000))
         return dlg
+
+    def on_pan_update(self, event: ft.DragUpdateEvent):
+        print(f"pan update: {self.ctrl['overview_image_stack'].top} {event.delta_x}, {event.delta_y}")
+        self.ctrl['overview_image_stack'].top += event.delta_y
+        self.ctrl['overview_image_stack'].left += event.delta_x
+        self.ctrl['overview_image_stack'].update()
+
+    def on_scroll_update(self, event: ft.ScrollEvent):
+        print(f'scroll update: {self.ctrl['overview_image_stack'].width} {event.scroll_delta_y}, {event.scroll_delta_y}')
+        self.ctrl['overview_image_stack'].top -= event.scroll_delta_y/2
+        self.ctrl['overview_image_stack'].left -= event.scroll_delta_y/2
+        self.ctrl['overview_image_stack'].width += event.scroll_delta_y
+        self.ctrl['overview_image_stack'].height += event.scroll_delta_y
+        self.ctrl['overview_image_stack'].update()
 
     def clear_overview_image(self, e):
         del e
