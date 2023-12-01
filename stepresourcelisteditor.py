@@ -55,6 +55,7 @@ class StepResourceListEditor():
 
     def dialog_save(self, e):
         del e
+        self.mfgdocsapp.storage.save_resources()
         self.dialog.open = False
         self.parent_search_update()
         self.parent_markdown_update()
