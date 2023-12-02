@@ -1,5 +1,7 @@
 """Handles UI element representations"""
 import base64
+import json
+
 from size_aware_control import SizeAwareControl
 import flet as ft
 from PIL import Image
@@ -110,6 +112,10 @@ class Frontend:
 class Overview:
 
     def __init__(self, mfgdocsapp: 'MFGDocsApp'):
+        self.border_x = None
+        self.border_y = None
+        self.json_clickable_objects = None
+        self.graphviz_json = None
         self.viewport_height = None
         self.viewport_width = None
         self.scale = 1.0
@@ -124,7 +130,7 @@ class Overview:
         self.image_width = 1
         self.image_height = 1
 
-    def get_overview_dialog(self, file_name='assets/generated/overview.dot.png'):
+    def get_overview_dialog(self, file_name='assets/generated/overview.dot'):
         dlg = ft.AlertDialog(visible=True,
                              open=True,
                              modal=False,
@@ -132,8 +138,10 @@ class Overview:
                              on_dismiss=self.clear_overview_image)
 
         self.image_width, self.image_height = self.get_image_size(file_name)
+        self.graphviz_json = self.load_graphviz_json(f'{file_name}.json')
+        self.process_graphviz_json(self.graphviz_json)
         self.scale = 1.0
-        with open(file_name, mode='rb') as file:
+        with open(f'{file_name}.png', mode='rb') as file:
             file_content = file.read()
         image_src = base64.b64encode(file_content).decode('utf-8')
         self.ctrl['overview_image'] = ft.Image(src_base64=image_src, expand=True)
@@ -148,7 +156,9 @@ class Overview:
                                                               )
         self.ctrl['overview_image_stack'] = ft.Stack(
             controls=[ft.Container(content=self.ctrl['overview_image_background']),
-                      ft.GestureDetector(on_pan_update=self.on_pan_update, on_scroll=self.on_scroll_update)],
+                      ft.GestureDetector(on_pan_update=self.on_pan_update,
+                                         on_scroll=self.on_scroll_update,
+                                         on_tap_up=self.click_overview_image)],
             left=0, top=0, width=3000, height=3000)
         dlg.content = SizeAwareControl(content=ft.Stack(controls=[self.ctrl['overview_image_stack']]),
                                        on_resize=self.content_resize,
@@ -166,25 +176,25 @@ class Overview:
         # we want to pad the image with a border so that the resulting object has the same ratio as the viewport
         if viewport_ratio > image_ratio:
             # viewport is wider than image, so we pad the image with a border on the left and right
-            border_x = (self.image_height * viewport_ratio) - self.image_width
-            border_y = 0
+            self.border_x = (self.image_height * viewport_ratio) - self.image_width
+            self.border_y = 0
         else:
-            border_y = (self.image_width / viewport_ratio) - self.image_height
-            border_x = 0
-        minscale = self.viewport_width / (self.image_width + border_x)
+            self.border_y = (self.image_width / viewport_ratio) - self.image_height
+            self.border_x = 0
+        minscale = self.viewport_width / (self.image_width + self.border_x)
         if self.scale is None:
             self.scale = minscale
         self.scale = self.clamp(self.scale, minscale, 30)
 
-        stack_width = (self.image_width + border_x) * self.scale
-        stack_height = (self.image_height + border_y) * self.scale
+        stack_width = (self.image_width + self.border_x) * self.scale
+        stack_height = (self.image_height + self.border_y) * self.scale
         stack_overflow_x = stack_width - self.viewport_width
         stack_overflow_y = stack_height - self.viewport_height
 
         if self.scale != self.previous_scale:
             if self.zoom_x is not None and self.ctrl['overview_image_stack'].width is not None:
-                prevstack_width = (self.image_width + border_x) * self.previous_scale
-                prevstack_height = (self.image_height + border_y) * self.previous_scale
+                prevstack_width = (self.image_width + self.border_x) * self.previous_scale
+                prevstack_height = (self.image_height + self.border_y) * self.previous_scale
                 size_delta_x = stack_width - prevstack_width
                 size_delta_y = stack_height - prevstack_height
                 of_x = size_delta_x * (self.zoom_x / self.ctrl['overview_image_stack'].width)
@@ -213,8 +223,13 @@ class Overview:
 
     def get_image_size(self, file_name: str):
         """Opens the file and returns the image size using PIL"""
-        im = Image.open(file_name)
+        im = Image.open(f'{file_name}.png')
         return im.size
+
+    def load_graphviz_json(self, file_name: str):
+        with open(file_name, mode='r') as file:
+            file_content = json.load(file)
+        return file_content
 
     def on_pan_update(self, event: ft.DragUpdateEvent):
         print(f"pan update: {self.ctrl['overview_image_stack'].top} {event.delta_x}, {event.delta_y}")
@@ -242,3 +257,66 @@ class Overview:
         if value > max:
             return max
         return value
+
+    # https://stackoverflow.com/a/76349368
+    def convert_points_to_inches(self, points: float) -> float:
+        return points / 72
+
+    def convert_points_to_pixels(self, points: float) -> float:
+        return points / 72 * self.json_dpi
+
+    def convert_pixels_to_inches(self, pixels: float) -> float:
+        return pixels / self.json_dpi
+
+    def convert_inches_to_pixels(self, inches: float) -> float:
+        return inches * self.json_dpi
+
+    def process_graphviz_json(self, json):
+        self.json_clickable_objects = {}
+        if json is None:
+            return
+        self.json_dpi = float(json['dpi'])
+        self.json_boundingbox = json['bb'].split(',')
+        self.json_bb_x1 = self.convert_points_to_pixels(float(self.json_boundingbox[0]))
+        self.json_bb_y1 = self.convert_points_to_pixels(float(self.json_boundingbox[1]))
+        self.json_bb_x2 = self.convert_points_to_pixels(float(self.json_boundingbox[2]))
+        self.json_bb_y2 = self.convert_points_to_pixels(float(self.json_boundingbox[3]))
+        self.json_size = json['size'].split(',')
+        print(f"json size: {self.json_bb_x1} {self.json_bb_y1} {self.json_bb_x2} {self.json_bb_y2}")
+        print(
+            f"image size: {self.image_width} {self.image_height} {self.convert_pixels_to_inches(self.image_width)} {self.convert_pixels_to_inches(self.image_height)}")
+        self.json_clickable_objects = {}
+        for n in json['objects']:
+            item = {}
+            pos = n['pos'].split(',')
+            item['key'] = n['name']
+            item['height'] = self.convert_inches_to_pixels(float(n['height']))
+            item['width'] = self.convert_inches_to_pixels(float(n['width']))
+            item['pos_x'] = self.convert_points_to_pixels(float(pos[0]))
+            item['pos_y'] = self.image_height - (self.convert_points_to_pixels(float(pos[1])))
+            item['pos_x1'] = item['pos_x'] - item['width'] / 2
+            item['pos_y1'] = item['pos_y'] - item['height'] / 2
+            item['pos_x2'] = item['pos_x'] + item['width'] / 2
+            item['pos_y2'] = item['pos_y'] + item['height'] / 2
+            self.json_clickable_objects[n['name']] = item
+            print(f"clickable object: {n['name']} {item['pos_x']} {item['pos_y']} {item['width']} {item['height']}")
+
+    def click_overview_image(self, event: ft.ControlEvent):
+        print(f"click on overview image: {event.local_x} {event.local_y}")
+
+        # we don't need to handle offset_x and offset_y since the coordinates are relative to the control which has been offset already
+        x = (event.local_x)/self.scale-self.border_x/2
+        y = (event.local_y)/self.scale-self.border_y/2
+        print(f"click on overview image x: {event.local_x} {self.offset_x} {self.scale:.2f} {self.border_x} {x}")
+        print(f"click on overview image y: {event.local_y} {self.offset_y} {self.scale:.2f} {self.border_y} {y}")
+        if self.json_clickable_objects is None:
+            return
+        for k, v in self.json_clickable_objects.items():
+            if v['pos_x1'] < x < v['pos_x2'] and v['pos_y1'] < y < v['pos_y2']:
+                print(f"click on {k}")
+                if k.lower().startswith('step'):
+                    self.mfgdocsapp.page.dialog.open = False
+                    self.mfgdocsapp.load_mainmarkdown_step(k)
+                    self.mfgdocsapp.page.update()
+                    return
+        print('click on nothing')

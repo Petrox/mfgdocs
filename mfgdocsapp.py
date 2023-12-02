@@ -15,8 +15,8 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
+# TODO zoom in and out seems to work only when the image is larger than the viewport, needs testing
 # TODO remove all prints and use logging instead
-# TODO add click handler to overview
 # TODO add dangling outputs to a list that could be added to the input of a step
 # TODO list all products that are built but have no steps to produce them so, one could add a step
 # TODO list all bomitems that are not used in any step

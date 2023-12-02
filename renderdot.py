@@ -36,7 +36,7 @@ class RenderDot:
     def render_steps_to_file(self, options=None, extension='png'):
         if options is None:
             options = {}
-        dg = graphviz.Digraph(encoding='utf-8', name='Manufacturing Document')
+        dg = graphviz.Digraph(encoding='utf-8', name='Manufacturing Document', graph_attr={'pad': '0'})
         dg.attr(rankdir='TD', size='15,15', dpi='300')
         edges = {}
         nodes = {}
@@ -71,10 +71,18 @@ class RenderDot:
         dotfilename = 'assets/generated/overview.dot'
         try:
             os.remove(dotfilename)
+        except FileNotFoundError:
+            pass
+        try:
             os.remove(dotfilename + '.png')
         except FileNotFoundError:
             pass
+        try:
+                os.remove(dotfilename + '.json')
+        except FileNotFoundError:
+            pass
         dg.render(dotfilename, format=extension, view=False, overwrite_source=True)
+        dg.render(dotfilename, format='json', view=False, overwrite_source=True)
 
     def dot_render_part_compact(self, dg: Digraph, part: Part, displaykey=None):
         dg.attr('node', shape='plain', style='filled', fillcolor='lightgrey', fontname='Courier New', fontsize='15',
