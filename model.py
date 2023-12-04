@@ -44,13 +44,14 @@ class Resource(Entity):
         self.description = ''
         self.image = ''
         self.color = ''
+        self.category = ''
 
     def contains(self, txt: str):
         """Returns true if the resource contains the text."""
         txt = txt.lower()
         if (txt in self.name.lower()
                 or txt in self.description.lower()
-                or txt in self.key.lower()):
+                or txt in self.key.lower()) or txt in self.category.lower():
             return True
         return False
 
@@ -60,6 +61,7 @@ class Resource(Entity):
             'name': self.name,
             'description': self.description,
             'image': self.image,
+            'category': self.category,
             'color': self.color}
 
     def from_dict(self, d: dict):
@@ -68,6 +70,7 @@ class Resource(Entity):
         self.description = d.get('description', '')
         self.image = d.get('image', '')
         self.color = d.get('color', '')
+        self.category = d.get('category', '')
 
 
 class Part(Resource):
