@@ -15,6 +15,7 @@ from stepresourcelisteditor import StepResourceListEditor
 from storage import Storage
 from view import ViewStep
 
+# TODO convert main frame to be able to host the overview and the other views
 # TODO zoom in and out seems to work only when the image is larger than the viewport, needs testing
 # TODO remove all prints and use logging instead
 # TODO add dangling outputs to a list that could be added to the input of a step
@@ -143,22 +144,27 @@ class MFGDocsApp:
                                                                  tooltip='Markdown help')
 
         self.ctrl['overview_button']: ft.IconButton = ft.IconButton(ft.icons.MAP,
+                                                                    icon_color=ft.colors.ON_SECONDARY,
                                                                     on_click=self.click_overview,
                                                                     tooltip='Overview')
 
-        self.ctrl |= {'progressring': ft.ProgressRing(visible=False),
-                      'reload': ft.IconButton(ft.icons.REFRESH, on_click=self.click_refresh,
-                                              tooltip='Reload datafiles'),
-                      'feedback': ft.IconButton(ft.icons.FEEDBACK, tooltip='Send Feedback',
-                                                on_click=lambda _: self.page.launch_url(Config.feedback_url)),
-                      }
+        self.ctrl['progressring']= ft.ProgressRing(visible=False)
+        self.ctrl['reload']=ft.IconButton(ft.icons.REFRESH,
+                                          on_click=self.click_refresh,
+                                          tooltip='Reload datafiles')
+        self.ctrl['feedback'] = ft.IconButton(ft.icons.FEEDBACK,
+                                              tooltip='Send Feedback',
+                                              on_click=lambda _: self.page.launch_url(Config.feedback_url))
         page.appbar = ft.AppBar(
-            title=ft.Text('Manufacturing Document Editor', color=Config.instance_color),
-            center_title=False,  # we center the title
-            bgcolor=Config.instance_bgcolor,  # a color for the AppBar's background
-            actions=[self.ctrl['overview_button'], self.ctrl['markdownhelp'], self.ctrl['emojihelp'],
+            title=ft.Text('Manufacturing Document Editor',
+                          color=Config.instance_color),
+            center_title=False,
+            bgcolor=Config.instance_bgcolor,
+            actions=[self.ctrl['progressring'],
+                     self.ctrl['overview_button'],
+                     self.ctrl['markdownhelp'],
+                     self.ctrl['emojihelp'],
                      self.ctrl['contains'],
-                     self.ctrl['progressring'],
                      self.ctrl['reload'], self.ctrl['feedback']]
         )
         self.ctrl['check_view_all'] = ft.Checkbox(label='View all')
