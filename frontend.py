@@ -1,11 +1,11 @@
 """Handles UI element representations"""
 import base64
 import json
-
-from size_aware_control import SizeAwareControl
 import flet as ft
+from size_aware_control import SizeAwareControl
 from PIL import Image
 from model import Part, Step, Action, Tool, Machine, Consumable, Role
+
 
 
 class Frontend:
@@ -31,8 +31,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.LIGHT_GREEN_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.MOTORCYCLE),
-                                     ft.Text(key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.MOTORCYCLE),
+                      ft.Text(key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_step(self, item: Part or int or str, key: str = None) -> ft.Control:
@@ -44,8 +46,10 @@ class Frontend:
         c.key = item.key
         c.bgcolor = ft.colors.LIGHT_BLUE_400
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.BUILD),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.BUILD),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_location(self, item: Step or int, key: str = None) -> ft.Control:
@@ -54,8 +58,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.BROWN_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.LOCATION_PIN),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.LOCATION_PIN),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_action(self, item: Action or int, key: str = None) -> ft.Control:
@@ -64,8 +70,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.CYAN_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.WORK),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.WORK),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_tool(self, item: Tool or int, key: str = None) -> ft.Control:
@@ -74,8 +82,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.ORANGE_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.CHAIR),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.CHAIR),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_machine(self, item: Machine or int, key: str = None) -> ft.Control:
@@ -84,8 +94,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.INDIGO_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.MICROWAVE),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.MICROWAVE),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_consumable(self, item: Consumable or int, key: str = None) -> ft.Control:
@@ -94,8 +106,10 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.GREY_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.WATER_DROP),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.WATER_DROP),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
 
     def get_searchresultitem_role(self, item: Role or int, key: str = None) -> ft.Control:
@@ -104,10 +118,11 @@ class Frontend:
         c = ft.Container()
         c.bgcolor = ft.colors.TEAL_600
         c.border = ft.RoundedRectangleBorder()
-        c.content = ft.Row(controls=[ft.IconButton(icon=ft.icons.MAN),
-                                     ft.Text(item.key, color='white'), ft.Text(item.name, color='white')])
+        c.content = ft.Row(
+            controls=[ft.IconButton(icon=ft.icons.MAN),
+                      ft.Text(item.key, color='white'), ft.Text(item.name, color='white')]
+        )
         return c
-
 
 class Overview:
 
@@ -131,11 +146,13 @@ class Overview:
         self.image_height = 1
 
     def get_overview_dialog(self, file_name='assets/generated/overview.dot'):
-        dlg = ft.AlertDialog(visible=True,
-                             open=True,
-                             modal=False,
-                             title=ft.Text('Overview'),
-                             on_dismiss=self.clear_overview_image)
+        dlg = ft.AlertDialog(
+            visible=True,
+            open=True,
+            modal=False,
+            title=ft.Text('Overview'),
+            on_dismiss=self.clear_overview_image
+        )
 
         self.image_width, self.image_height = self.get_image_size(file_name)
         self.graphviz_json = self.load_graphviz_json(f'{file_name}.json')
@@ -145,24 +162,34 @@ class Overview:
             file_content = file.read()
         image_src = base64.b64encode(file_content).decode('utf-8')
         self.ctrl['overview_image'] = ft.Image(src_base64=image_src, expand=True)
-        self.ctrl['overview_image_background'] = ft.Container(height=self.image_height * 2,
-                                                              width=self.image_width * 2,
-                                                              bgcolor='green',
-                                                              content=ft.Column(alignment=ft.MainAxisAlignment.CENTER,
-                                                                                controls=[
-                                                                                    ft.Row(controls=[
-                                                                                        self.ctrl['overview_image']],
-                                                                                        alignment=ft.MainAxisAlignment.CENTER)])
-                                                              )
+        self.ctrl['overview_image_background'] = ft.Container(
+            height=self.image_height * 2,
+            width=self.image_width * 2,
+            bgcolor='green',
+            content=ft.Column(
+                alignment=ft.MainAxisAlignment.CENTER,
+                controls=[
+                    ft.Row(
+                        controls=[
+                            self.ctrl['overview_image']],
+                        alignment=ft.MainAxisAlignment.CENTER
+                    )]
+            )
+        )
         self.ctrl['overview_image_stack'] = ft.Stack(
             controls=[ft.Container(content=self.ctrl['overview_image_background']),
-                      ft.GestureDetector(on_pan_update=self.on_pan_update,
-                                         on_scroll=self.on_scroll_update,
-                                         on_tap_up=self.click_overview_image)],
-            left=0, top=0, width=3000, height=3000)
-        dlg.content = SizeAwareControl(content=ft.Stack(controls=[self.ctrl['overview_image_stack']]),
-                                       on_resize=self.content_resize,
-                                       width=2000)
+                      ft.GestureDetector(
+                          on_pan_update=self.on_pan_update,
+                          on_scroll=self.on_scroll_update,
+                          on_tap_up=self.click_overview_image
+                      )],
+            left=0, top=0, width=3000, height=3000
+        )
+        dlg.content = SizeAwareControl(
+            content=ft.Stack(controls=[self.ctrl['overview_image_stack']]),
+            on_resize=self.content_resize,
+            width=2000
+        )
         return dlg
 
     def reset_image_position(self):
@@ -179,7 +206,7 @@ class Overview:
             self.border_x = (self.image_height * viewport_ratio) - self.image_width
             self.border_y = 0
         else:
-            self.border_y = (self.image_width / viewport_ratio) - self.image_height
+            self.border_y = (self.image_width * viewport_ratio) - self.image_height
             self.border_x = 0
         minscale = self.viewport_width / (self.image_width + self.border_x)
         if self.scale is None:
@@ -243,7 +270,8 @@ class Overview:
         self.zoom_x = event.local_x
         self.zoom_y = event.local_y
         print(
-            f'scroll update: {self.ctrl['overview_image_stack'].width} {event.scroll_delta_y} {self.scale}')
+            f'scroll update: {self.ctrl['overview_image_stack'].width} {event.scroll_delta_y} {self.scale}'
+        )
         self.update_image_position()
 
     def clear_overview_image(self, e):
@@ -284,7 +312,8 @@ class Overview:
         self.json_size = json['size'].split(',')
         print(f"json size: {self.json_bb_x1} {self.json_bb_y1} {self.json_bb_x2} {self.json_bb_y2}")
         print(
-            f"image size: {self.image_width} {self.image_height} {self.convert_pixels_to_inches(self.image_width)} {self.convert_pixels_to_inches(self.image_height)}")
+            f"image size: {self.image_width} {self.image_height} {self.convert_pixels_to_inches(self.image_width)} {self.convert_pixels_to_inches(self.image_height)}"
+        )
         self.json_clickable_objects = {}
         for n in json['objects']:
             item = {}
@@ -305,8 +334,8 @@ class Overview:
         print(f"click on overview image: {event.local_x} {event.local_y}")
 
         # we don't need to handle offset_x and offset_y since the coordinates are relative to the control which has been offset already
-        x = (event.local_x)/self.scale-self.border_x/2
-        y = (event.local_y)/self.scale-self.border_y/2
+        x = (event.local_x) / self.scale - self.border_x / 2
+        y = (event.local_y) / self.scale - self.border_y / 2
         print(f"click on overview image x: {event.local_x} {self.offset_x} {self.scale:.2f} {self.border_x} {x}")
         print(f"click on overview image y: {event.local_y} {self.offset_y} {self.scale:.2f} {self.border_y} {y}")
         if self.json_clickable_objects is None:

@@ -13,7 +13,7 @@ from mfgdocsapp import MFGDocsApp
 def main(page: ft.Page):
     Config.init_config()
     app = MFGDocsApp(page)
-    app.main()
+    #app.main()
 
 
 ft.app(target=main,
