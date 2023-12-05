@@ -1,5 +1,7 @@
 import flet as ft
 from model import Step
+from stepeditordialog import StepEditorDialog
+from stepresourcelisteditor import StepResourceListEditor
 from view import ViewStep
 
 
@@ -44,7 +46,7 @@ class MainDisplay:
                       self.ctrl['map_check_group_companies'],
                       self.ctrl['map_check_group_activities'],
                       self.ctrl['map_check_group_locations']]
-            )
+        )
 
         self.ctrl['map_toolbar'] = ft.Row(controls=[self.ctrl['map_toolbar_checkboxes']])
         self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='lightblue')
@@ -106,6 +108,7 @@ class MainDisplay:
             control_list.append(ft.Text(f'These can start in parallel after {step.key} starts:'))
             control_list.extend(start_after_start_controls)
         return control_list
+
     def prepare_top_dependency_buttons(self, step):
         control_list = []
         start_after_start_controls = []
@@ -134,157 +137,162 @@ class MainDisplay:
         # decode url parts (click://edit_step_inputparts/47)
         url = url.replace('click://', '')
         url_parts = url.split('/')
+        print(f'handle_click_link: {url_parts}')
         if len(url_parts) < 2:
             return
         action = url_parts[0]
         # pk = url_parts[1]
         if action == 'step_edit':
-            self.click_step_edit(None)
+            self.click_step_edit(url_parts)
         elif action == 'step_edit_inputparts':
-            self.click_step_edit_inputparts(None)
+            self.click_step_edit_inputparts(url_parts)
         elif action == 'step_edit_outputparts':
-            self.click_step_edit_outputparts(None)
+            self.click_step_edit_outputparts(url_parts)
         elif action == 'step_edit_roles':
-            self.click_step_edit_roles(None)
+            self.click_step_edit_roles(url_parts)
         elif action == 'step_edit_actions':
-            self.click_step_edit_actions(None)
+            self.click_step_edit_actions(url_parts)
         elif action == 'step_edit_machines':
-            self.click_step_edit_machines(None)
+            self.click_step_edit_machines(url_parts)
         elif action == 'step_edit_tools':
-            self.click_step_edit_tools(None)
+            self.click_step_edit_tools(url_parts)
         elif action == 'step_edit_consumables':
-            self.click_step_edit_consumables(None)
+            self.click_step_edit_consumables(url_parts)
         elif action == 'step_edit_start_after':
-            self.click_step_edit_start_after(None)
+            self.click_step_edit_start_after(url_parts)
         elif action == 'step_edit_start_after_start':
-            self.click_step_edit_start_after_start(None)
+            self.click_step_edit_start_after_start(url_parts)
         else:
             print(f'Unknown action: {action}')
 
-    def click_step_edit_actions(self, e):
-        del e
+    def click_step_edit_actions(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        dlg = StepResourceListEditor(self, step, step.actions, 'actions', f'Actions used for {step.key}')
+        step = self.object_on_display
+
+        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.actions, 'actions', f'Actions used for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def click_step_edit_consumables(self, e):
-        del e
+    def click_step_edit_consumables(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        dlg = StepResourceListEditor(self, step, step.consumables, 'consumables', f'Consumables used in {step.key}')
+        step = self.object_on_display
+
+        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.consumables, 'consumables', f'Consumables used in {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def click_step_edit_tools(self, e):
-        del e
+    def click_step_edit_tools(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        dlg = StepResourceListEditor(self, step, step.tools, 'tools', f'Tools used for {step.key}')
+        step = self.object_on_display
+        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.tools, 'tools', f'Tools used for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def click_step_edit_roles(self, e):
-        del e
+    def click_step_edit_roles(self, url_parts: list[str]):
+        print(f'click_step_edit_roles: {url_parts} {self.object_on_display}')
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        dlg = StepResourceListEditor(self, step, step.roles, 'roles', f'Roles for {step.key}')
+        step = self.object_on_display
+        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.roles, 'roles', f'Roles for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-    def click_step_edit_inputparts(self, e):
-        del e
+    def click_step_edit_inputparts(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
+        step = self.object_on_display
         dlg = StepResourceListEditor(
-            self, step, step.inputparts,
+            self.mfgdocsapp, step, step.inputparts,
             'parts', f'Input parts for {step.key}', is_inputpart=True
-            )
+        )
         self.edit_popup_editordialog(dlg)
 
-
-    def click_step_edit(self, e):
-        del e
+    def click_step_edit(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        self.editor_dialog = StepEditorDialog(self, step)
+        step = self.object_on_display
+        self.editor_dialog = StepEditorDialog(self.mfgdocsapp, step)
         self.mfgdocsapp.page.dialog = self.editor_dialog.dialog
         self.mfgdocsapp.page.dialog.visible = True
         self.mfgdocsapp.page.dialog.open = True
         self.mfgdocsapp.page.update()
 
-    def click_step_edit_outputparts(self, e):
-        del e
+    def click_step_edit_outputparts(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
+        step = self.object_on_display
+
         dlg = StepResourceListEditor(
-            self, step, step.outputparts,
+            self.mfgdocsapp, step, step.outputparts,
             'parts', f'Output parts for {step.key}'
-            )
+        )
         self.edit_popup_editordialog(dlg)
 
-
-    def click_step_edit_machines(self, e):
-        del e
+    def click_step_edit_machines(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
-        dlg = StepResourceListEditor(self, step, step.machines, 'machines', f'Machines used for {step.key}')
+        step = self.object_on_display
+
+        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.machines, 'machines', f'Machines used for {step.key}')
         self.edit_popup_editordialog(dlg)
 
-
-    def click_step_edit_start_after(self, e):
-        del e
+    def click_step_edit_start_after(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
+        step = self.object_on_display
+
         dlg = StepResourceListEditor(
-            self, step, step.start_after, 'start_after',
+            self.mfgdocsapp, step, step.start_after, 'start_after',
             f'{step.key} dependencies start_after'
         )
         self.edit_popup_editordialog(dlg)
 
-    def click_step_edit_start_after_start(self, e):
-        del e
+    def click_step_edit_start_after_start(self, url_parts: list[str]):
+        del url_parts
         if self.object_on_display is None:
             return
-        if self.object_on_display not in self.storage.cache_steps.data:
+        if not isinstance(self.object_on_display,Step):
             return
-        step = self.storage.cache_steps.data[self.object_on_display]
+        step = self.object_on_display
+
         dlg = StepResourceListEditor(
-            self, step, step.start_after_start, 'start_after_start',
+            self.mfgdocsapp, step, step.start_after_start, 'start_after_start',
             f'Parallel dependencies for {step.key} start_after_start'
         )
         self.edit_popup_editordialog(dlg)
 
     def edit_popup_editordialog(self, editor_dialog):
         self.editor_dialog = editor_dialog
-        self.page.dialog = self.editor_dialog.dialog
-        self.page.dialog.visible = True
-        self.page.dialog.open = True
-        self.page.update()
+        self.mfgdocsapp.page.dialog = self.editor_dialog.dialog
+        self.mfgdocsapp.page.dialog.visible = True
+        self.mfgdocsapp.page.dialog.open = True
+        self.mfgdocsapp.page.update()
 
     def display_map(self):
         self.object_on_display = None
@@ -295,4 +303,3 @@ class MainDisplay:
     def load_mainmarkdown_step(self, key):
         step = self.storage.cache_steps.data[key]
         self.display_step(step)
-

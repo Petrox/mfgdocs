@@ -113,8 +113,7 @@ class StepEditorDialog:
         self.mfgdocsapp.load_mainmarkdown_step(self.step.key)
 
     def parent_search_update(self):
-        if self.mfgdocsapp.ctrl['panel_searchresults_container'].visible:
-            self.mfgdocsapp.search(None)
+        self.mfgdocsapp.seach_update()
 
     def dialog_preview(self, e):
         del e

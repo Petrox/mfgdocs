@@ -214,6 +214,9 @@ class MFGDocsApp:
             )
         self.page.views[0].scroll = ft.ScrollMode.ADAPTIVE
 
+    def seach_update(self):
+        if self.ctrl['panel_searchresults_container'].visible:
+            self.search(None)
 
     def show_searchresults(self):
         self.ctrl['check_panel_searchresults'].value = True
