@@ -1,11 +1,16 @@
 import flet as ft
 from model import Step
+from size_aware_control import SizeAwareControl
 from stepeditordialog import StepEditorDialog
 from stepresourcelisteditor import StepResourceListEditor
 from view import ViewStep
+from map import Map
 
 
 class MainDisplay:
+    """Main display screen for the application, responsible for displaying the map and the entity markdowns.
+
+    """
 
     def __init__(self, mfgdocsapp: 'MFGDocsApp', storage: 'Storage'):
         self.editor_dialog = None
@@ -14,6 +19,24 @@ class MainDisplay:
         self.ctrl = {}
         self.maincontrol = ft.Container()
         self.object_on_display = None
+        self.map = Map(self.mfgdocsapp, self.storage)
+
+    def handle_resize(self, e: ft.canvas.CanvasResizeEvent):
+        """
+        The handle_resize function is a callback function that will be called when
+        the control that triggered this event is resized (ex: through window resize).
+        The CanvasResizeEvent object has several useful attributes:
+            - control: The control that triggered the event (SizeAwareControl)
+            - width: The new width of the control in pixels (after resize)
+            - height: The new height of the control in pixels (after resize)
+        """
+        # grab the content of the SizeAwareControl
+        c = e.control.content
+        # grab the text in its content
+        t = c.content
+        # instead of e.width for example, you can use the e.control.size namedtuple (e.control.size.width or e.control.size[0])
+        t.value = f"{e.width} x {e.height}"
+        self.mfgdocsapp.page.update()
 
     def build(self):
         self.ctrl['maincontrol'] = self.maincontrol
@@ -22,7 +45,7 @@ class MainDisplay:
         self.ctrl['step_markdown'] = ft.Markdown(
             selectable=True,
             expand=False,
-            value='ASDASDASD',
+            value='',
             extension_set=ft.MarkdownExtensionSet.GITHUB_WEB,
             on_tap_link=self.markdown_link_tap
         )
@@ -36,7 +59,8 @@ class MainDisplay:
         self.ctrl['map_check_group_activities'] = ft.Checkbox(label='Group activities')
         self.ctrl['map_check_group_locations'] = ft.Checkbox(label='Group locations')
         self.ctrl['map_toolbar_checkboxes'] = ft.Row(
-            controls=[self.ctrl['map_check_view_all'],
+            controls=[ft.Text("Checkboxes:"),
+                      self.ctrl['map_check_view_all'],
                       self.ctrl['map_check_show_names'],
                       self.ctrl['map_check_show_warnings'],
                       self.ctrl['map_check_show_bom'],
@@ -49,8 +73,21 @@ class MainDisplay:
         )
 
         self.ctrl['map_toolbar'] = ft.Row(controls=[self.ctrl['map_toolbar_checkboxes']])
-        self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='lightblue')
+        # self.ctrl['map_canvas'] = SizeAwareControl(ft.Container(ft.Text('map canvas'),bgcolor='yellow'), width=1000,height=1000, on_resize=self.map_size_change,expand=True)
+        s1 = SizeAwareControl(
+            ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.RED, alignment=ft.alignment.center),
+            on_resize=self.handle_resize, expand=2
+            )
+        s2 = SizeAwareControl(
+            ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.BLUE, alignment=ft.alignment.center),
+            on_resize=self.handle_resize, expand=3
+            )
+        self.ctrl['map_canvas'] = ft.Row([s1,s2],expand=True)
+        #self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='yellow', width=100, height=100)
+        # self.ctrl['map_canvas'] = ft.Row([ft.Container(ft.Text('map canvas'), bgcolor='yellow', expand=True)],expand=True)
+
         self.ctrl['map_display'] = ft.Column(
+            expand=True,
             controls=[self.ctrl['map_toolbar'],
                       self.ctrl['map_canvas']]
         )
@@ -64,8 +101,21 @@ class MainDisplay:
             ]
         )
 
-        self.ctrl['maincontrol'].content = ft.Stack(controls=[self.ctrl['map_display'], self.ctrl['step_display']])
+        #self.ctrl['maincontrol'].content = ft.Stack(controls=[self.ctrl['map_display'], self.ctrl['step_display']])
+        self.ctrl['maincontrol'].content = self.ctrl['map_display']
         return self.maincontrol
+
+    def show_map_display(self):
+        self.ctrl['maincontrol'].content = self.ctrl['map_display']
+
+    def show_step_display(self):
+        self.ctrl['maincontrol'].content = self.ctrl['step_display']
+
+    def map_size_change(self, event):
+        print(f'map_size_change: {event.width} {event.height}')
+        # if self.object_on_display is None:
+        #    #self.ctrl['map_canvas'].content = self.map.display_map(width=event.data[0], height=event.data[1])
+        # self.maincontrol.update()
 
     def markdown_link_tap(self, event):
         print(f'Link tapped: {event.data}')
@@ -83,6 +133,7 @@ class MainDisplay:
         self.ctrl['step_topbar'].visible = True
         self.ctrl['step_bottombar'].content = ft.Row(controls=self.prepare_bottom_dependency_buttons(step))
         self.ctrl['step_bottombar'].visible = True
+        self.show_step_display()
         self.maincontrol.update()
 
     def prepare_bottom_dependency_buttons(self, step):
@@ -169,7 +220,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
@@ -180,18 +231,20 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
-        dlg = StepResourceListEditor(self.mfgdocsapp, step, step.consumables, 'consumables', f'Consumables used in {step.key}')
+        dlg = StepResourceListEditor(
+            self.mfgdocsapp, step, step.consumables, 'consumables', f'Consumables used in {step.key}'
+        )
         self.edit_popup_editordialog(dlg)
 
     def click_step_edit_tools(self, url_parts: list[str]):
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
         dlg = StepResourceListEditor(self.mfgdocsapp, step, step.tools, 'tools', f'Tools used for {step.key}')
@@ -202,7 +255,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
         dlg = StepResourceListEditor(self.mfgdocsapp, step, step.roles, 'roles', f'Roles for {step.key}')
@@ -212,7 +265,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
         dlg = StepResourceListEditor(
@@ -225,7 +278,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
         self.editor_dialog = StepEditorDialog(self.mfgdocsapp, step)
@@ -238,7 +291,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
@@ -252,7 +305,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
@@ -263,7 +316,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
@@ -277,7 +330,7 @@ class MainDisplay:
         del url_parts
         if self.object_on_display is None:
             return
-        if not isinstance(self.object_on_display,Step):
+        if not isinstance(self.object_on_display, Step):
             return
         step = self.object_on_display
 
@@ -298,6 +351,9 @@ class MainDisplay:
         self.object_on_display = None
         self.ctrl['map_display'].visible = True
         self.ctrl['step_display'].visible = False
+        # print(f'display_map: {self.ctrl["map_canvas"].size[0]} {self.ctrl["map_canvas"].size[1]}')
+        # self.ctrl['map_canvas'].content = self.map.display_map(width=self.ctrl['map_canvas'].size[0], height=self.ctrl['map_canvas'].size[1])
+        self.show_map_display()
         self.maincontrol.update()
 
     def load_mainmarkdown_step(self, key):

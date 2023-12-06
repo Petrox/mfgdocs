@@ -20,16 +20,16 @@ class StepEditorDialog:
         self.original_step = copy.deepcopy(step.to_dict())
         self.dialog = ft.AlertDialog(modal=False)
         self.dialog.title = ft.Text(f'Step Editor {self.step.key}')
-        self.dialog.content = self.get_content()
+        self.dialog.content = self.build()
         self.dialog.actions = [ft.TextButton('Cancel', on_click=self.dialog_cancel),
-                               # ft.TextButton('Preview', on_click=self.dialog_preview),
                                ft.TextButton('Save', on_click=self.dialog_save)]
         self.dialog.actions_alignment = 'end'
         self.dialog.shape = ft.BeveledRectangleBorder()
 
         self.dialog.visible = True
 
-    def get_content(self):
+    def build(self):
+        """Builds the content of the dialog."""
         control_list = [
             ft.TextField(label='Name', dense=True, value=self.step.name,
                          on_change=lambda e: setattr(self.step, 'name', e.control.value)),
@@ -94,6 +94,7 @@ class StepEditorDialog:
                                               controls=control_list))
 
     def dialog_cancel(self, e):
+        """Closes the dialog and reverts any changes."""
         del e
         self.dialog.open = False
         self.step.from_dict(self.original_step)
@@ -102,6 +103,7 @@ class StepEditorDialog:
         self.mfgdocsapp.page.update()
 
     def dialog_save(self, e):
+        """Saves the step into the storage and closes the dialog."""
         del e
         self.dialog.open = False
         self.mfgdocsapp.storage.save_resources()
@@ -110,13 +112,9 @@ class StepEditorDialog:
         self.mfgdocsapp.page.update()
 
     def parent_markdown_update(self):
+        """Updates the markdown preview in the main page."""
         self.mfgdocsapp.load_mainmarkdown_step(self.step.key)
 
     def parent_search_update(self):
+        """Updates the search results in the main page."""
         self.mfgdocsapp.seach_update()
-
-    def dialog_preview(self, e):
-        del e
-        self.parent_search_update()
-        self.parent_markdown_update()
-        self.mfgdocsapp.page.update()

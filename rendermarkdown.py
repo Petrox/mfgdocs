@@ -108,7 +108,6 @@ class RenderMarkdown:
 
     def list_from_itemlist_and_data(self, itemdict: dict, data: dict, append: str = '') -> list:
         lst = []
-        print(itemdict)
         for k, v in itemdict.items():
             try:
                 item = data[k]

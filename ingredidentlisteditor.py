@@ -1,8 +1,6 @@
 """
 A user control to edit a list of resources and their quantities.
 """
-from typing import Any
-
 import flet as ft
 from frontend import Frontend
 from model import Resource, Step, Part
@@ -15,6 +13,7 @@ class IngredientListEditor(ft.UserControl):
     def __init__(self, label, items=None, color=ft.colors.ON_PRIMARY, resource_type=None, storage: Storage = None,
                  is_inputpart: bool = False):
         super().__init__()
+        self.drop = None
         self.is_inputpart = is_inputpart
         self.maincontrol = None
         self.amount = None
@@ -28,6 +27,7 @@ class IngredientListEditor(ft.UserControl):
         self.resource_type = resource_type
 
     def get_searchitem(self, obj, key: str = None) -> ft.Control:
+        """This method is used to get a search result control for a specific object."""
         if Frontend.singleton_frontend is None:
             return ft.Text('Frontend.singleton_frontend is None')
         if obj is None:
@@ -36,6 +36,19 @@ class IngredientListEditor(ft.UserControl):
         return Frontend.singleton_frontend.get_searchresultitem(obj, key=key)
 
     def click_remove(self, event):
+        """
+        This method is used to remove a specific item from the list.
+
+        Parameters:
+        event (ft.Event): The event object that triggered this method. The event object's control data
+                          should contain the key of the item to be removed.
+
+        The method does the following:
+        1. Retrieves the key of the item from the event's control data.
+        2. Calls the `remove_maincontrol_by_key` method to remove the item's control from the main control.
+        3. Deletes the item from the `items` dictionary using the retrieved key.
+        4. Calls the `update` method of `maincontrol` to reflect the changes in the UI.
+        """
         key = event.control.data['key']
         self.remove_maincontrol_by_key(key)
         del self.items[key]
@@ -51,6 +64,10 @@ class IngredientListEditor(ft.UserControl):
             self.maincontrol.controls.pop(found)
 
     def set_amount(self, event):
+        """
+        This method is used to set the amount of a specific item in the list.
+
+        """
         key = event.control.data['key']
         value = self.int_or_float_from_string(event.control.value)
         event.control.value = str(value)
@@ -58,6 +75,10 @@ class IngredientListEditor(ft.UserControl):
         self.maincontrol.update()
 
     def build(self):
+        """This method is used to build the user interface for the ingredient list editor.
+
+        """
+
         self.controls = [ft.Text(self.label, color=self.color, style=ft.TextThemeStyle.LABEL_LARGE)]
         for k, v in self.items.items():
             item = self.storage.get_resource_by_type_and_key(res_type=self.resource_type, key=k)
@@ -110,7 +131,8 @@ class IngredientListEditor(ft.UserControl):
         return self.maincontrol
 
     def search_change(self, event):
-        print('search_change')
+        """This method is used to update the dropdown list of items when the search text changes."""
+
         search = event.control.data['searchfield']
         drop = event.control.data['dropdown']
         txt = search.value
@@ -134,6 +156,10 @@ class IngredientListEditor(ft.UserControl):
         self.maincontrol.update()
 
     def update_add_button(self, event=None):
+        """This method is used to update the visibility of the add button when the amount
+         or the selected item changes.
+
+         """
         del event
         if self.addbutton is None:
             return
@@ -164,12 +190,14 @@ class IngredientListEditor(ft.UserControl):
             return 0
 
     def click_add(self, event):
+        """This method is used to add an item to the list."""
         del event
         self.items[self.drop.value] = self.int_or_float_from_string(self.amount.value)
         self.build()
         self.maincontrol.update()
 
     def find_items(self, items, txt):
+        """This method is used to find items in the items list that match the search text."""
         results = []
         v: Resource
         k: str

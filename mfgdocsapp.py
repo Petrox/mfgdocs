@@ -111,7 +111,7 @@ class MFGDocsApp:
         self.ctrl['contains'] = ft.TextField(
             label='Search here', width=150, color='black', border=ft.InputBorder.NONE,
             filled=True, dense=True, icon=ft.icons.SEARCH, on_submit=self.search
-            )
+        )
         self.ctrl['panel_editor'] = ft.Column(controls=[ft.Text('editor')], visible=False)
         self.ctrl['panel_searchresults'] = ft.Column(controls=[ft.Text('searchresults')], expand=True)
         self.ctrl['panel_searchresults_container'] = ft.Container(
@@ -135,41 +135,48 @@ class MFGDocsApp:
                 url_emojiexamples
             ),
             tooltip='Emoji help'
-            )
+        )
         self.ctrl['icon_markdownhelp']: ft.IconButton = ft.IconButton(
             ft.icons.HELP_CENTER,
             on_click=lambda e: self.page.launch_url(
                 url_markdownsyntax
             ),
             tooltip='Markdown help'
-            )
+        )
 
+        self.ctrl['icon_map_button']: ft.IconButton = ft.IconButton(
+            ft.icons.FULLSCREEN,
+            icon_color=ft.colors.PRIMARY,
+            on_click=self.click_show_map,
+            tooltip='Map'
+        )
         self.ctrl['icon_overview_button']: ft.IconButton = ft.IconButton(
             ft.icons.MAP,
             icon_color=ft.colors.ON_SECONDARY,
             on_click=self.click_overview,
             tooltip='Overview'
-            )
+        )
 
         self.ctrl['progressring'] = ft.ProgressRing(visible=False)
         self.ctrl['icon_reload'] = ft.IconButton(
             ft.icons.REFRESH,
             on_click=self.click_reload_data_from_json,
             tooltip='Reload datafiles'
-            )
+        )
         self.ctrl['icon_feedback'] = ft.IconButton(
             ft.icons.FEEDBACK,
             tooltip='Send Feedback',
             on_click=lambda _: self.page.launch_url(Config.feedback_url)
-            )
+        )
         page.appbar = ft.AppBar(
             title=ft.Text(
                 'Manufacturing Document Editor',
                 color=Config.instance_color
-                ),
+            ),
             center_title=False,
             bgcolor=Config.instance_bgcolor,
             actions=[self.ctrl['progressring'],
+                     self.ctrl['icon_map_button'],
                      self.ctrl['icon_overview_button'],
                      self.ctrl['icon_markdownhelp'],
                      self.ctrl['icon_emojihelp'],
@@ -190,7 +197,20 @@ class MFGDocsApp:
         self.page.update()
         self.load_mainmarkdown_step('STEP-0001')
 
+    def click_show_map(self, event):
+        """ Click handler for the map button.
+
+        :param event: The event that triggered the method.
+        """
+        del event
+        self.main_display.display_map()
+        self.page.update()
+
     def click_overview(self, event):
+        """ Click handler for the overview button.
+
+        :param event: the event triggering the method
+        """
         del event
         self.ctrl['progressring'].visible = True
         self.ctrl['progressring'].update()
@@ -200,35 +220,48 @@ class MFGDocsApp:
         self.display_overview()
 
     def configure_page(self):
+        """
+        Configures the page with the specified title, theme, and scroll mode.
+
+        :return: None
+        """
+        self.set_page_title()
+        self.set_page_theme()
+        self.set_page_scroll_mode()
+
+    def set_page_title(self):
         self.page.title = 'MFGDocs'
-        self.page.theme_mode = ft.ThemeMode.DARK
-        scrollbar = ft.theme.ScrollbarTheme(
-            thumb_visibility=True, thickness=10, track_visibility=True,
-            interactive=True
-            )
+
+    def set_page_theme(self):
+        scrollbar = self.create_scrollbar_theme()
         self.page.theme = ft.theme.Theme(
             color_scheme_seed='blue',
             scrollbar_theme=scrollbar,
             visual_density=ft.ThemeVisualDensity.COMPACT,
             font_family='Roboto'
-            )
+        )
+
+    def set_page_scroll_mode(self):
         self.page.views[0].scroll = ft.ScrollMode.ADAPTIVE
+
+    def create_scrollbar_theme(self):
+        return ft.theme.ScrollbarTheme(
+            thumb_visibility=True, thickness=10, track_visibility=True,
+            interactive=True
+        )
+
 
     def seach_update(self):
         if self.ctrl['panel_searchresults_container'].visible:
             self.search(None)
 
     def show_searchresults(self):
-        self.ctrl['check_panel_searchresults'].value = True
-        self.ctrl['check_panel_searchresults'].update()
         self.ctrl['panel_searchresults_container'].visible = True
         self.ctrl['panel_searchresults_container'].width = 300
         self.ctrl['panel_searchresults_container'].update()
 
     def hide_searchresults(self, e):
         del e
-        self.ctrl['check_panel_searchresults'].value = False
-        self.ctrl['check_panel_searchresults'].update()
         self.ctrl['panel_searchresults_container'].visible = False
         self.ctrl['panel_searchresults_container'].update()
 
@@ -242,7 +275,7 @@ class MFGDocsApp:
                 controls=[ft.Text('Search Results', style=ft.TextThemeStyle.HEADLINE_MEDIUM),
                           ft.Container(expand=True),
                           ft.IconButton(ft.icons.CLOSE, on_click=self.hide_searchresults)]
-                )
+            )
         )
         self.show_searchresults()
         results = 0
@@ -259,8 +292,8 @@ class MFGDocsApp:
                 ft.Text(
                     'No search results found', color='red',
                     style=ft.TextThemeStyle.HEADLINE_MEDIUM
-                    )
                 )
+            )
         self.ctrl['panel_searchresults'].update()
         self.ctrl['progressring'].visible = False
         self.ctrl['progressring'].update()
@@ -280,6 +313,9 @@ class MFGDocsApp:
         self.ctrl['progressring'].update()
 
     def longprocess_start(self):
+        """ Starts a long process, disabling the maincontent and showing a progress ring.
+
+        """
         assert isinstance(self.maincontent, ft.Container)
         self.long_process_depth += 1
         if self.long_process_depth > 0:
@@ -289,6 +325,9 @@ class MFGDocsApp:
             self.maincontent.update()
 
     def longprocess_finish(self):
+        """ Finishes a long process, enabling the maincontent and hiding the progress ring.
+
+        """
         assert isinstance(self.maincontent, ft.Container)
         self.long_process_depth -= 1
         if self.long_process_depth < 1:
@@ -298,9 +337,11 @@ class MFGDocsApp:
             self.maincontent.update()
 
     def log(self, message):
+        """Write a message to the console."""
         print(f"[{datetime.now().isoformat()}] {message}")
 
     def display_overview(self):
+        """Displays the overview dialog."""
         self.page.dialog = self.overview.get_overview_dialog()
         self.page.dialog.visible = True
         self.page.update()
