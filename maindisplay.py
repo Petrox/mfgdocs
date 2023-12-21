@@ -59,7 +59,7 @@ class MainDisplay:
         self.ctrl['map_check_group_activities'] = ft.Checkbox(label='Group activities')
         self.ctrl['map_check_group_locations'] = ft.Checkbox(label='Group locations')
         self.ctrl['map_toolbar_checkboxes'] = ft.Row(
-            controls=[ft.Text("Checkboxes:"),
+            controls=[ft.Text('Checkboxes:'),
                       self.ctrl['map_check_view_all'],
                       self.ctrl['map_check_show_names'],
                       self.ctrl['map_check_show_warnings'],
@@ -76,13 +76,13 @@ class MainDisplay:
         # self.ctrl['map_canvas'] = SizeAwareControl(ft.Container(ft.Text('map canvas'),bgcolor='yellow'), width=1000,height=1000, on_resize=self.map_size_change,expand=True)
         s1 = SizeAwareControl(
             ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.RED, alignment=ft.alignment.center),
-            on_resize=self.handle_resize, expand=2
+            height=300,on_resize=self.handle_resize, expand=2
             )
         s2 = SizeAwareControl(
             ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.BLUE, alignment=ft.alignment.center),
-            on_resize=self.handle_resize, expand=3
+            height=300,on_resize=self.handle_resize, expand=3
             )
-        self.ctrl['map_canvas'] = ft.Row([s1,s2],expand=True)
+        self.ctrl['map_canvas'] = ft.Row([s1,s2])
         #self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='yellow', width=100, height=100)
         # self.ctrl['map_canvas'] = ft.Row([ft.Container(ft.Text('map canvas'), bgcolor='yellow', expand=True)],expand=True)
 
