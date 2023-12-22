@@ -38,6 +38,23 @@ class MainDisplay:
         t.value = f"{e.width} x {e.height}"
         self.mfgdocsapp.page.update()
 
+    def wrapper_resize_event(self, e: ft.canvas.CanvasResizeEvent):
+        """
+        The handle_resize function is a callback function that will be called when
+        the control that triggered this event is resized (ex: through window resize).
+        The CanvasResizeEvent object has several useful attributes:
+            - control: The control that triggered the event (SizeAwareControl)
+            - width: The new width of the control in pixels (after resize)
+            - height: The new height of the control in pixels (after resize)
+        """
+        # grab the content of the SizeAwareControl
+        c = e.control.content
+        # grab the text in its content
+        t = c.content
+        # instead of e.width for example, you can use the e.control.size namedtuple (e.control.size.width or e.control.size[0])
+        t.value = f"{e.width} x {e.height}"
+        self.mfgdocsapp.page.update()
+
     def build(self):
         self.ctrl['maincontrol'] = self.maincontrol
         self.ctrl['step_topbar'] = ft.Container(visible=False)
@@ -76,14 +93,25 @@ class MainDisplay:
         # self.ctrl['map_canvas'] = SizeAwareControl(ft.Container(ft.Text('map canvas'),bgcolor='yellow'), width=1000,height=1000, on_resize=self.map_size_change,expand=True)
         s1 = SizeAwareControl(
             ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.RED, alignment=ft.alignment.center),
-            height=300,on_resize=self.handle_resize, expand=2
-            )
+            on_resize=self.handle_resize, expand=1
+        )
         s2 = SizeAwareControl(
             ft.Container(content=ft.Text('W x H'), bgcolor=ft.colors.BLUE, alignment=ft.alignment.center),
-            height=300,on_resize=self.handle_resize, expand=3
-            )
-        self.ctrl['map_canvas'] = ft.Row([s1,s2])
-        #self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='yellow', width=100, height=100)
+            on_resize=self.handle_resize, expand=1
+        )
+        mapwrapper = SizeAwareControl(
+            ft.Container(
+                content=ft.Text('Map'),
+                bgcolor=ft.colors.YELLOW,
+                alignment=ft.alignment.center
+                ),
+            on_resize=self.wrapper_resize_event,
+            expand=True
+        )
+        self.mfgdocsapp.page.on_resize = self.page_resize_event
+        #self.ctrl['map_canvas'] = ft.Row([s1,s2],expand=True)
+        self.ctrl['map_canvas'] = ft.Column([ft.Row([mapwrapper],expand=False)])
+        # self.ctrl['map_canvas'] = ft.Container(ft.Text('map canvas'), bgcolor='yellow', width=100, height=100)
         # self.ctrl['map_canvas'] = ft.Row([ft.Container(ft.Text('map canvas'), bgcolor='yellow', expand=True)],expand=True)
 
         self.ctrl['map_display'] = ft.Column(
@@ -94,6 +122,7 @@ class MainDisplay:
 
         self.ctrl['step_display'] = ft.Column(
             scroll=ft.ScrollMode.ALWAYS,
+            expand=True,
             controls=[
                 self.ctrl['step_topbar'],
                 self.ctrl['step_markdown'],
@@ -101,8 +130,9 @@ class MainDisplay:
             ]
         )
 
-        #self.ctrl['maincontrol'].content = ft.Stack(controls=[self.ctrl['map_display'], self.ctrl['step_display']])
+        # self.ctrl['maincontrol'].content = ft.Stack(controls=[self.ctrl['map_display'], self.ctrl['step_display']])
         self.ctrl['maincontrol'].content = self.ctrl['map_display']
+        self.ctrl['maincontrol'].expand = True
         return self.maincontrol
 
     def show_map_display(self):
@@ -110,6 +140,12 @@ class MainDisplay:
 
     def show_step_display(self):
         self.ctrl['maincontrol'].content = self.ctrl['step_display']
+
+    def page_resize_event(self, event:ft.ControlEvent):
+        print(f'page_size_change: {event.page.window_width} {event.page.window_height}')
+        # if self.object_on_display is None:
+        #    #self.ctrl['map_canvas'].content = self.map.display_map(width=event.data[0], height=event.data[1])
+        # self.maincontrol.update()
 
     def map_size_change(self, event):
         print(f'map_size_change: {event.width} {event.height}')

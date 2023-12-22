@@ -96,10 +96,9 @@ class PanZoom(ft.UserControl):
             height=self.height,
             expand=self.expand
         )
-        self.main_control = SizeAwareControl(
+        self.main_control = ft.Container(
             content=ft.Stack(controls=[self.innerstack]),
             expand=self.expand,
-            on_resize=self.content_resize,
             width=self.width,
             height=self.height
         )
